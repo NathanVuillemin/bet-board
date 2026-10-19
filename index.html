@@ -204,6 +204,26 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
 .list { display: grid; gap: 8px; padding-block: 16px; max-width: 900px; }
 .note { color: var(--muted); font-size: 14px; max-width: 80ch; padding-top: 14px; }
 .load { padding: 60px 0; color: var(--muted); }
+
+/* team panel: past games + averages for both teams of a bet */
+.tpanel { display: grid; gap: 10px; min-width: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; width: fit-content; max-width: 100%; }
+.seg button { border: 0; background: var(--surface); padding: 5px 12px; font-weight: 600; cursor: pointer; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.thead { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.thead b { color: var(--ink); font-size: 15px; }
+.form { display: inline-flex; gap: 3px; flex-wrap: wrap; }
+.wdl { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 4px; font-size: 11px; font-weight: 700; font-style: normal; }
+.wdl.W { background: var(--ok-soft); color: var(--ok); } .wdl.D { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); } .wdl.L { background: var(--bad-soft); color: var(--bad); }
+table.games td { padding-block: 4px; } table.games td.opp { white-space: normal; min-width: 130px; }
+table.games td.opp small { display: block; color: var(--muted); font-size: 11px; }
+table.games tr.this td { background: var(--accent-soft); font-weight: 700; }
+table.games tr.after td { opacity: .55; }
+table.games .rs { display: inline-flex; align-items: center; gap: 6px; }
+table.avgs td:first-child { color: var(--muted); }
+.linkbtn { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font-weight: 600; font-size: 13px; width: fit-content; }
+.tnote { font-size: 12px; color: var(--muted); }
 @media (max-width: 560px) {
   .brand h1 { font-size: 22px; }
   .split { grid-template-columns: 110px 1fr 64px; }
@@ -360,6 +380,10 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       const ps = $('span', 'ps'); ps.append($('span', null, `projected ${Math.round(m.share * 100)}% of the shots`), $('span', null, `own record ${m.own[0]}/${m.own[1]}`), $('span', null, `opponent out-shot ${m.opp[0]}/${m.opp[1]}`));
       bt.append($('span', 'pl', m.label), pm, ps); bx.append(bt, tickBtn('bet', m.id)); if (isMine(m.id)) bx.classList.add('mine');
       const rs = $('div', 'reason'); const u = $('ul'); m.reasons.forEach(r => u.append($('li', null, r))); rs.append(u); bx.append(rs);
+      const tb = $('button', 'linkbtn', 'Show team data'); tb.type = 'button'; let tp = null;
+      tb.addEventListener('click', () => { if (tp) { tp.remove(); tp = null; tb.textContent = 'Show team data'; return; }
+        tp = teamPanel([g.home, g.away], m.team, g.eventId, D.date); rs.append(tp); tb.textContent = 'Hide team data'; });
+      rs.append(tb); bt.addEventListener('click', () => tb.click());
       sM.append(bx); b.append(sM);
     }
 
@@ -389,6 +413,8 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       w.append(tb); s4.append(w);
     }
     b.append(s4);
+    const sG = sec('Recent games', 'both teams · past results, xG, shots, possession');
+    sG.append(teamPanel([g.home, g.away], g.home, g.eventId, D.date)); b.append(sG);
     // 4 table
     const s5 = sec('Table', 'what the game means');
     const kv2 = $('div', 'kv');
@@ -417,6 +443,101 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
   const sec = (h, small) => { const s = $('section', 'sec'); const hh = $('h4', null, h); if (small) hh.append($('small', null, small)); s.append(hh); return s; };
   const kvp = (k, v) => { const d = $('div'); d.append($('span', null, k), document.createTextNode(v)); return d; };
   const para = t => { const p = $('p', null, t); p.style.margin = '0'; return p; };
+
+  /* ---------- team panel (Nathan, 2026-10-19: "see more team data like past games and other stats like xG when I click
+     on a suggested bet from any tab"). Data: teams.json (tools/team-sheet.py), loaded on first use. ---------- */
+  let TJ = null, TJP = null;
+  const loadTeams = () => TJP || (TJP = fetch('teams.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => (TJ = j)));
+  const dmy = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+  const wdl = r => r.gf > r.ga ? 'W' : r.gf < r.ga ? 'L' : 'D';
+  const pair = (a, b, d) => a == null && b == null ? '—' : `${a == null ? '—' : a.toFixed(d)}–${b == null ? '—' : b.toFixed(d)}`;
+  function avgCell(rows, k, d) {
+    const v = rows.map(r => r[k]).filter(x => x != null); if (!v.length) return '—';
+    const m = v.reduce((a, x) => a + x, 0) / v.length; return m.toFixed(d) + (v.length < rows.length ? ` (${v.length})` : '');
+  }
+  /* teams: [home, away]; focus: the bet's team; ev/date: the bet's match (past bets: games after it are hidden by default,
+     its own row is highlighted, and the averages use only the games before it). */
+  function teamPanel(teams, focus, ev, date) {
+    teams = (teams || []).filter(Boolean); if (!teams.length) return $('div');
+    let cur = teams.includes(focus) ? focus : teams[0], showAll = false, showAfter = false;
+    const box = $('div', 'tpanel'); box.append($('div', 'tnote', 'Loading team data…'));
+    const draw = () => {
+      box.replaceChildren();
+      if (teams.length > 1) { const sg = $('div', 'seg'); sg.setAttribute('role', 'group'); sg.setAttribute('aria-label', 'Team');
+        teams.forEach(t => { const b = $('button', null, t); b.type = 'button'; b.setAttribute('aria-pressed', String(t === cur));
+          b.addEventListener('click', e => { e.stopPropagation(); cur = t; showAll = false; showAfter = false; draw(); }); sg.append(b); }); box.append(sg); }
+      const T = TJ && TJ.teams[cur];
+      if (!T || !T.g.length) { box.append($('div', 'tnote', `No past games stored for ${cur} yet. They are added by the morning run.`)); return; }
+      const G = T.g, at = ev ? G.findIndex(r => String(r.ev) === String(ev)) : -1;
+      const isAfter = r => at >= 0 ? G.indexOf(r) < at : (date && r.d > date);
+      const before = G.filter(r => !isAfter(r) && String(r.ev) !== String(ev) && (!date || r.d <= date));
+      const later = G.filter(isAfter);
+      // header: league, table, form
+      const hd = $('div', 'thead'); hd.append($('b', null, cur));
+      if (T.lg) hd.append($('span', null, T.lg));
+      if (T.tbl && T.tbl.pos) hd.append($('span', null, `${ord(T.tbl.pos)} of ${T.tbl.of} · ${T.tbl.pts} pts in ${T.tbl.played}`));
+      const fm = $('span', 'form'); fm.setAttribute('aria-label', 'Form, newest first');
+      before.slice(0, 10).forEach(r => { const i = $('i', 'wdl ' + wdl(r), wdl(r)); i.title = `${dmy(r.d)} ${r.h ? 'v' : '@'} ${r.o} ${r.gf}–${r.ga}`; fm.append(i); });
+      const fl = $('span'); fl.append(document.createTextNode(`Form (last ${Math.min(10, before.length)}, newest first) `), fm); hd.append(fl);
+      box.append(hd);
+      // averages: last 5 / last 10 before the bet's match, this season, last season
+      const l5 = before.slice(0, 5), l10 = before.slice(0, 10), C = T.cur, P = T.prev;
+      const A = [['Goals for', 'gf', 2, C && C.gf, P && P.gf], ['Goals against', 'ga', 2, C && C.ga, P && P.ga], ['xG for', 'xg', 2, C && C.xg, P && P.xgF], ['xG against', 'xa', 2, null, null],
+        ['Shots for', 'sh', 1, C && C.shots, P && P.shF], ['Shots against', 'sa', 1, C && C.shotsAg, P && P.shA], ['On target for', 'st', 1, null, P && P.sotF], ['On target against', 'sta', 1, null, P && P.sotA],
+        ['Big chances for', 'bc', 1, C && C.bigCh, null], ['Possession %', 'po', 0, C && C.poss, P && P.poss], ['Tackles', 'tk', 1, null, P && P.tkF]];
+      const aw = $('div', 'tbl-wrap'), at_ = $('table', 'avgs'), ah = $('tr');
+      ah.append($('th', null, 'Per match'), $('th', 'n', `Last ${l5.length}`), $('th', 'n', `Last ${l10.length}`), $('th', 'n', C ? `Season (${C.m})` : 'Season'), $('th', 'n', P ? `Last season (${P.matches})` : 'Last season'));
+      at_.append(ah);
+      A.forEach(([l, k, d, c, p]) => { const tr = $('tr'); tr.append($('td', null, l), $('td', 'n', avgCell(l5, k, d)), $('td', 'n', avgCell(l10, k, d)),
+        $('td', 'n', c == null ? '—' : (+c).toFixed(d)), $('td', 'n', p == null ? '—' : (+p).toFixed(d))); at_.append(tr); });
+      aw.append(at_); box.append(aw);
+      box.append($('div', 'tnote', 'Last 5 and last 10 count every competition' + (ev && at >= 0 ? ', before this bet\'s match' : '') + '. A number in brackets = how many of those games had that stat. Season = league matches this season' + (C && C.asof && C.asof !== (D && D.date) ? ` (as of ${dmy(C.asof)})` : '') + '. xG comes from Sofascore and is missing in leagues it does not measure.'));
+      // games
+      const list = (showAfter ? later : []).concat(G.filter(r => !isAfter(r)));
+      const shown = showAll ? list : list.slice(0, (showAfter ? later.length : 0) + 10);
+      const gw = $('div', 'tbl-wrap'), gt = $('table', 'games'), gh = $('tr');
+      [['Date'], [''], ['Opponent'], ['Result'], ['xG', 1], ['Shots', 1], ['On target', 1], ['Poss %', 1], ['Tackles', 1]].forEach(([h, n]) => gh.append($('th', n ? 'n' : null, h)));
+      gt.append(gh);
+      shown.forEach(r => {
+        const tr = $('tr', String(r.ev) === String(ev) ? 'this' : isAfter(r) ? 'after' : '');
+        const op = $('td', 'opp'); op.append(document.createTextNode(r.o)); if (!r.l || String(r.ev) === String(ev)) op.append($('small', null, String(r.ev) === String(ev) ? 'this bet\'s match' + (r.l ? '' : ' · ' + r.c) : r.c));
+        const rs = $('td'); const rw = $('span', 'rs'); rw.append($('i', 'wdl ' + wdl(r), wdl(r)), $('span', 'num', `${r.gf}–${r.ga}`)); rs.append(rw);
+        tr.append($('td', 'num', dmy(r.d)), $('td', null, r.h ? 'H' : 'A'), op, rs, $('td', 'n', pair(r.xg, r.xa, 2)), $('td', 'n', pair(r.sh, r.sa, 0)),
+          $('td', 'n', pair(r.st, r.sta, 0)), $('td', 'n', r.po == null ? '—' : String(Math.round(r.po))), $('td', 'n', pair(r.tk, r.tka, 0)));
+        gt.append(tr);
+      });
+      gw.append(gt); box.append($('div', 'subh', `Past games (${G.length - later.length}${later.length ? ' up to this match' : ''}) · for–against`), gw);
+      const ctl = $('div', 'row'); ctl.style.flexWrap = 'wrap'; ctl.style.gap = '6px 16px';
+      if (list.length > shown.length || showAll) { const b = $('button', 'linkbtn', showAll ? 'Show fewer' : `Show all ${list.length}`); b.type = 'button'; b.addEventListener('click', e => { e.stopPropagation(); showAll = !showAll; draw(); }); ctl.append(b); }
+      if (later.length) { const b = $('button', 'linkbtn', showAfter ? 'Hide games after this match' : `Show ${later.length} game${later.length > 1 ? 's' : ''} after this match`); b.type = 'button';
+        b.addEventListener('click', e => { e.stopPropagation(); showAfter = !showAfter; draw(); }); ctl.append(b); }
+      if (ctl.children.length) box.append(ctl);
+    };
+    if (TJ) draw(); else loadTeams().then(draw).catch(() => box.replaceChildren($('div', 'tnote', 'Team data is not published yet. The morning run builds it.')));
+    return box;
+  }
+
+  /* ---------- a single bet from the Performance tab ---------- */
+  function openBet(b) {
+    const sh = document.getElementById('sheet'); sh.replaceChildren();
+    const hd = $('div', 'sheet-h'); const t = $('div', 't');
+    t.append($('div', 'lg', `${b.lg} · ${dmy(b.d)}${b.ko ? ' ' + b.ko : ''} · ${b.fx}`));
+    const h3 = $('h3', null, b.bet); h3.id = 'sheet-title'; t.append(h3);
+    const cl = $('button', 'close', 'Close'); cl.type = 'button'; cl.addEventListener('click', closeSheet); hd.append(t, cl); sh.append(hd);
+    const bd = $('div', 'sheet-b'); sh.append(bd);
+    const s1 = sec('The bet', b.grp + (mineB(b) ? ' · my bet' : ''));
+    const kv = $('div', 'kv');
+    kv.append(kvp('Result', b.res), kvp('P · fair', b.P == null ? '—' : `${Math.round(b.P * 100)}% · ${b.fair == null ? '—' : b.fair.toFixed(2)}`),
+      kvp('Actual', b.act == null ? '—' : String(b.act) + (b.mar == null ? '' : ` (margin ${b.mar > 0 ? '+' : ''}${b.mar})`)), kvp('Confidence', b.conf ? b.conf + ' of 5' : 'not rated'),
+      kvp('Match type', (b.mt || '—') + (b.act_type ? ` → was ${b.act_type}` : '')), kvp('Fit · diagnosis', `${b.fit || '—'} · ${b.diag || 'not reviewed'}`));
+    s1.append(kv); if (b.why) s1.append(para(b.why));
+    const g = D && D.leagues.flatMap(l => l.games).find(x => String(x.eventId) === String(b.ev));
+    if (g) { const ob = $('button', 'linkbtn', 'Open this match on today\'s board'); ob.type = 'button'; ob.addEventListener('click', () => openGame(g.eventId, (b.ids || [b.id]).find(i => g.picks.some(p => p.id === i)))); s1.append(ob); }
+    bd.append(s1);
+    const s2 = sec('Team data', 'past games and stats, both sides');
+    s2.append(teamPanel(b.teams, b.team || b.teams[0], b.ev, b.d)); bd.append(s2);
+    document.getElementById('scrim').hidden = false; sh.hidden = false; sh.scrollTop = 0; cl.focus();
+  }
 
   const SPLIT_ORDER = ['overall', 'favourite', 'even', 'underdog', 'v top half', 'v bottom half', 'home', 'away', 'dominant on shots (hindsight)', 'underdog on shots (hindsight)'];
   const SPLIT_NAME = { overall: 'All matches', favourite: 'As favourite', even: 'Even match-up', underdog: 'As underdog', 'v top half': 'v top-half sides', 'v bottom half': 'v bottom-half sides',
@@ -535,6 +656,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
         body.append(sp);
         body.append($('div', 'subh', 'Bold rows match tonight. Shot-share rows are hindsight: shown, never used to pick.'));
       }
+      body.append($('div', 'subh', 'Team data'), teamPanel([g.home, g.away], p.side ? g[p.side] : (p.team || g.home), g.eventId, D.date));
       w.append(body); bt.setAttribute('aria-expanded', 'true'); w.setAttribute('open-pick', '');
     });
     return w;
@@ -736,14 +858,15 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     tw.append(t); sec3.append(tw); main.append(sec3);
 
     // every bet
-    const sec4 = $('section', 'lsec'); sec4.append($('h3', null, `Every bet (${rows.length})`));
+    const sec4 = $('section', 'lsec'); sec4.append($('h3', null, `Every bet (${rows.length})`), $('p', 'note', 'Click a bet for its details and both teams\' past games and stats (xG, shots, possession) up to that match.'));
     const bcol = [['d', 'Date'], ['bet', 'Bet'], ['res', 'Result'], ['P', 'P'], ['act', 'Actual'], ['mar', 'Margin'], ['fair', 'Fair'], ['conf', 'Conf'], ['fit', 'Fit'], ['fx', 'Match'], ['lg', 'League'], ['why', 'Why / diagnosis'], ['grp', 'Group']];
     const R = rows.slice().sort((a, b) => { const x = a[ASORT.k], y = b[ASORT.k]; return (x == null || x === '') - (y == null || y === '') || (x > y ? 1 : x < y ? -1 : 0) * ASORT.dir; });
     const tw2 = $('div', 'tbl-wrap'), t2 = $('table', 'sortable bets'), h2 = $('tr');
     bcol.forEach(([c, l]) => { const th = $('th', ['P', 'fair', 'conf', 'act', 'mar'].includes(c) ? 'n' : null, l + (ASORT.k === c ? (ASORT.dir > 0 ? ' ▲' : ' ▼') : '')); th.tabIndex = 0;
       th.addEventListener('click', () => { ASORT = { k: c, dir: ASORT.k === c ? -ASORT.dir : -1 }; render(); }); h2.append(th); });
     t2.append(h2);
-    R.slice(0, APAGE).forEach(b => { const tr = $('tr');
+    R.slice(0, APAGE).forEach(b => { const tr = $('tr', 'clickrow'); tr.tabIndex = 0; tr.title = 'Open this bet: reasoning and team data';
+      tr.addEventListener('click', () => openBet(b)); tr.addEventListener('keydown', e => { if (e.key === 'Enter') openBet(b); });
       const cell = { d: b.d + (b.ko ? ' ' + b.ko : ''), lg: b.lg, fx: b.fx, bet: b.bet, P: b.P == null ? '—' : Math.round(b.P * 100) + '%', fair: b.fair == null ? '—' : b.fair.toFixed(2),
         conf: b.conf ?? '—', fit: b.fit || '—', act: b.act ?? '—', mar: b.mar == null ? '—' : (b.mar > 0 ? '+' : '') + b.mar, res: b.res,
         why: [b.why, b.diag && b.act_type ? `${b.diag} (was ${b.act_type})` : b.diag].filter(Boolean).join(' · ') || '—', grp: b.grp + (mineB(b) ? ' · mine' : '') };
