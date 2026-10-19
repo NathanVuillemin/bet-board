@@ -597,7 +597,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
   const bandOf = P => P == null ? 'no P' : P >= .95 ? '95%+' : P >= .90 ? '90–95%' : P >= .85 ? '85–90%' : P >= .80 ? '80–85%' : 'under 80%';
   const mkName = b => b.mk === 'shotshare' ? (b.line != null && b.line <= 0.51 ? 'team most shots' : 'team shot share %') : `${b.kind} ${b.mk}${b.dir === 'under' ? ' under' : ''}`;
   const settled = b => b.res === 'HIT' || b.res === 'MISS';
-  const GROUPS = { lg: ['League', b => b.lg], team: ['Team', b => b.team || '—'], player: ['Player', b => b.sub || '(team and match bets)'], sel: ['My bets v the rest', b => mineB(b) ? 'My bets' : 'Not selected'], mk: ['Market', mkName], band: ['P band', b => bandOf(b.P)],
+  const GROUPS = { lg: ['League', b => b.lg], team: ['Team', b => b.team || (b.sub ? '(player, team not recorded)' : '(match bets)')], player: ['Player', b => b.sub || '(team and match bets)'], sel: ['My bets v the rest', b => mineB(b) ? 'My bets' : 'Not selected'], mk: ['Market', mkName], band: ['P band', b => bandOf(b.P)],
     conf: ['Confidence', b => b.conf ? b.conf + ' of 5' : 'not rated'], fit: ['Match-type fit', b => b.fit || 'unknown'],
     grp: ['Bet group', b => b.grp], d: ['Day', b => b.d], diag: ['Diagnosis', b => b.diag || 'not reviewed'], mt: ['Expected match type', b => (b.mt || '—').replace(/ —.*| \(.*/, '')] };
 
@@ -633,6 +633,11 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     s.addEventListener('change', () => onch(s.value)); w.append(s); return w;
   }
   const uniq = f => [...new Set(BJ.bets.map(f).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  // cascading choices (Nathan, 2026-10-19): league -> its teams -> that team's players. Without a league the full lists stay
+  // available but grouped by league in the label order.
+  const teamsIn = lg => [...new Set(BJ.bets.filter(b => !lg || b.lg === lg).flatMap(b => [b.team].concat(b.sub ? [] : b.teams)).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  const playersIn = (lg, team) => [...new Set(BJ.bets.filter(b => b.sub && (!lg || b.lg === lg) && (!team || b.team === team)).map(b => b.sub))].sort((a, b) => a.localeCompare(b));
 
   function renderAnalysis(main) {
     if (!BJ || !LJ) {
@@ -649,9 +654,11 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     const fl = $('div', 'filters2');
     fl.append(select('af-sel', 'Selection', [['', 'All picks'], ['mine', 'My bets'], ['not', 'Not selected']], AF.sel, v => set('sel', v)),
       select('af-period', 'Period', [['all', 'All time'], ['90', 'Past 3 months'], ['30', 'Past month'], ['7', 'Past 7 days'], ['3', 'Past 3 days']], AF.period, v => set('period', v)),
-      select('af-lg', 'League', [['', 'All leagues']].concat(uniq(b => b.lg).map(x => [x, x])), AF.lg, v => set('lg', v)),
-      select('af-team', 'Team', [['', 'All teams']].concat(uniq(b => b.team).concat(BJ.bets.flatMap(b => b.teams)).filter((x, i, a) => x && a.indexOf(x) === i).sort().map(x => [x, x])), AF.team, v => set('team', v)),
-      select('af-player', 'Player', [['', 'All players']].concat(uniq(b => b.sub).map(x => [x, x])), AF.player, v => set('player', v)),
+      select('af-lg', 'League', [['', 'All leagues']].concat(uniq(b => b.lg).map(x => [x, x])), AF.lg, v => { AF.lg = v;
+        if (AF.team && !teamsIn(v).includes(AF.team)) AF.team = ''; if (AF.player && !playersIn(v, AF.team).includes(AF.player)) AF.player = ''; set('lg', v); }),
+      select('af-team', AF.lg ? 'Team' : 'Team (pick a league first)', [['', AF.lg ? 'All teams in ' + AF.lg : 'All teams']].concat(teamsIn(AF.lg).map(x => [x, x])), AF.team, v => { AF.team = v;
+        if (AF.player && !playersIn(AF.lg, v).includes(AF.player)) AF.player = ''; set('team', v); }),
+      select('af-player', AF.team ? 'Player' : AF.lg ? 'Player (pick a team to narrow)' : 'Player (pick a league first)', [['', AF.team ? 'All players of ' + AF.team : 'All players']].concat(playersIn(AF.lg, AF.team).map(x => [x, x])), AF.player, v => set('player', v)),
       select('af-mk', 'Market', [['', 'All markets']].concat(uniq(mkName).map(x => [x, x])), AF.mk, v => set('mk', v)),
       select('af-grp', 'Bet group', [['', 'All bets'], ['Single', 'Singles'], ['Slip leg', 'Slip legs'], ['Situational', 'Situational'], ['Board', 'Other board picks'], ['Shadow', 'Shadow: dropped by opponent side']], AF.grp, v => set('grp', v)),
       select('af-res', 'Result', [['', 'Any result'], ['settled', 'Settled'], ['HIT', 'Hits'], ['MISS', 'Misses'], ['VOID', 'Voids'], ['PENDING', 'Pending']], AF.res, v => set('res', v)),
@@ -700,7 +707,10 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     const sec3 = $('section', 'lsec'); const bh = $('div', 'row'); bh.style.flexWrap = 'wrap';
     bh.append($('h3', null, 'Breakdown'), select('af-by', 'Group by', Object.entries(GROUPS).map(([key, [n]]) => [key, n]), AF.by, v => set('by', v)));
     sec3.append(bh, $('p', 'note', 'Red: landed 5+ points under what it promised. Green: at or above. Click a header to sort, a row to filter on it.'));
-    const gf = GROUPS[AF.by][1], gm = new Map(); rows.forEach(b => { const key = gf(b); if (!gm.has(key)) gm.set(key, []); gm.get(key).push(b); });
+    const gf0 = GROUPS[AF.by][1];
+    const gf = (AF.by === 'team' || AF.by === 'player') && !AF.lg ? (b => { const k = gf0(b); return k && !k.startsWith('(') && k !== '—' ? `${k} · ${b.lg}` : k; })
+      : AF.by === 'player' && AF.lg && !AF.team ? (b => { const k = gf0(b); return k && !k.startsWith('(') && b.team ? `${k} · ${b.team}` : k; }) : gf0;
+    const gm = new Map(); rows.forEach(b => { const key = gf(b); if (!gm.has(key)) gm.set(key, []); gm.get(key).push(b); });
     let G = [...gm.entries()].map(([key, rs]) => Object.assign({ key }, stats(rs)));
     const gcol = [['key', GROUPS[AF.by][0]], ['n', 'Picks'], ['set', 'Settled'], ['hits', 'Hits'], ['miss', 'Misses'], ['rate', 'Hit rate'], ['avgP', 'Promised'], ['gap', 'Gap'], ['plus1', 'Next line also'], ['near', 'Missed by 1'], ['voids', 'Void'], ['pend', 'Pending']];
     G.forEach(x => x.gap = gapOf(x));
@@ -714,7 +724,15 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       const fk = { lg: 'lg', team: 'team', player: 'player', mk: 'mk', band: 'band', grp: 'grp', fit: 'fit', diag: 'diag' }[AF.by];
       if (AF.by === 'sel') tr.addEventListener('click', () => set('sel', x.key === 'My bets' ? 'mine' : 'not'));
       if (AF.by === 'player' && x.key.startsWith('(')) { t.append(tr); return; }
-      if (fk) tr.addEventListener('click', () => set(fk, fk === 'fit' && x.key === 'unknown' ? 'unknown' : x.key)); t.append(tr); });
+      if (fk) tr.addEventListener('click', () => {
+        if ((fk === 'team' || fk === 'player') && x.key.includes(' · ')) {
+          const [name, ctx] = x.key.split(' · ');
+          if (!AF.lg && fk === 'team') AF.lg = ctx;
+          if (!AF.lg && fk === 'player') { const one = BJ.bets.find(b => b.sub === name); if (one) AF.lg = one.lg; }
+          if (fk === 'player' && !AF.team) { const one = BJ.bets.find(b => b.sub === name && b.team); if (one) AF.team = one.team; }
+          return set(fk, name);
+        }
+        set(fk, fk === 'fit' && x.key === 'unknown' ? 'unknown' : x.key); }); t.append(tr); });
     tw.append(t); sec3.append(tw); main.append(sec3);
 
     // every bet
