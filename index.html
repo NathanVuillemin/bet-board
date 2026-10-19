@@ -601,7 +601,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     const q = AF.q.trim().toLowerCase();
     return BJ.bets.filter(b => (!since || b.d >= since) && (!AF.lg || b.lg === AF.lg) && (!AF.team || b.team === AF.team || (!b.sub && b.teams.includes(AF.team)))
       && (!AF.sel || (AF.sel === 'mine') === mineB(b)) && (!AF.player || b.sub === AF.player)
-      && (!AF.mk || mkName(b) === AF.mk) && (!AF.grp || b.grp === AF.grp) && (!AF.fit || (b.fit || 'unknown') === AF.fit)
+      && (!AF.mk || mkName(b) === AF.mk) && (AF.grp ? b.grp === AF.grp : b.grp !== 'Shadow') && (!AF.fit || (b.fit || 'unknown') === AF.fit)
       && (!AF.band || bandOf(b.P) === AF.band) && (!AF.conf || (b.conf || 0) >= +AF.conf)
       && (!AF.diag || (b.diag || 'not reviewed') === AF.diag)
       && (!AF.res || (AF.res === 'settled' ? settled(b) : b.res === AF.res))
@@ -647,7 +647,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       select('af-team', 'Team', [['', 'All teams']].concat(uniq(b => b.team).concat(BJ.bets.flatMap(b => b.teams)).filter((x, i, a) => x && a.indexOf(x) === i).sort().map(x => [x, x])), AF.team, v => set('team', v)),
       select('af-player', 'Player', [['', 'All players']].concat(uniq(b => b.sub).map(x => [x, x])), AF.player, v => set('player', v)),
       select('af-mk', 'Market', [['', 'All markets']].concat(uniq(mkName).map(x => [x, x])), AF.mk, v => set('mk', v)),
-      select('af-grp', 'Bet group', [['', 'All bets'], ['Single', 'Singles'], ['Slip leg', 'Slip legs'], ['Situational', 'Situational'], ['Board', 'Other board picks']], AF.grp, v => set('grp', v)),
+      select('af-grp', 'Bet group', [['', 'All bets'], ['Single', 'Singles'], ['Slip leg', 'Slip legs'], ['Situational', 'Situational'], ['Board', 'Other board picks'], ['Shadow', 'Shadow: dropped by opponent side']], AF.grp, v => set('grp', v)),
       select('af-res', 'Result', [['', 'Any result'], ['settled', 'Settled'], ['HIT', 'Hits'], ['MISS', 'Misses'], ['VOID', 'Voids'], ['PENDING', 'Pending']], AF.res, v => set('res', v)),
       select('af-conf', 'Confidence', [['', 'Any'], ['3', '3+'], ['4', '4+'], ['5', '5']], AF.conf, v => set('conf', v)),
       select('af-band', 'P band', [['', 'Any'], ['95%+', '95%+'], ['90–95%', '90–95%'], ['85–90%', '85–90%'], ['80–85%', '80–85%'], ['under 80%', 'under 80%'], ['no P', 'no P']], AF.band, v => set('band', v)),
@@ -742,6 +742,8 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       const ul = $('ul'); LJ.step_ups.forEach(x => ul.append($('li', null, `${x.subject} ${x.market}: ${x.step_up} (picks ${x.n}, average actual ${x.avg_actual})`)));
       if (!LJ.step_ups.length) ul.append($('li', null, 'No step-up candidates yet: a team or player needs 5+ scored picks on the same market.'));
       s6.append($('div', 'subh', 'Step-up candidates'), ul);
+      if (LJ.gate) { const gq = LJ.gate, sg = $('section', 'lsec'); sg.append($('h3', null, 'Both sides of the coin'), $('p', 'note', 'From 20 Oct every player pick must also pass the opponent side: his share of the team volume replayed against what this opponent allowed in its recent matches. Picks that pass on his own record but fail on the opponent side are logged as shadow picks (not shown) so we can see if the check is right.'));
+        sg.append(lt([{ k: 'Player picks kept (both sides 80%+)', h: gq.kept_hits, n: gq.kept_n }, { k: 'Dropped by the opponent side (shadow)', h: gq.shadow_hits, n: gq.shadow_n }], [{ h: '', f: r => r.k }, { h: 'Landed', n: 1, f: r => frac(r.h, r.n) }])); main.append(sg); }
       const dg = LJ.diagnosis, s7 = $('section', 'lsec');
       s7.append($('h3', null, 'Diagnosis: was the game what we expected?'), $('p', null, `Match types right: ${frac(dg.type_right, dg.games)} · shot-share error ${dg.share_mae == null ? '—' : Math.round(dg.share_mae * 100) + ' points'} · misses in the last ${LJ.calibration.window_days} days: ${dg.miss_split.type_wrong} type wrong, ${dg.miss_split.type_right_pick_wrong} type right but pick wrong, ${dg.miss_split.not_reviewed} not reviewed.`));
       const conf = dg.confusion || {}, types = [...new Set(Object.keys(conf).concat(...Object.values(conf).map(o => Object.keys(o))))];
