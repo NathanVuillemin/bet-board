@@ -113,6 +113,19 @@ details.how div { max-width: 76ch; padding: 8px 0 4px; display: grid; gap: 6px; 
 .kpis { display: flex; flex-wrap: wrap; gap: 10px 28px; }
 .kpis div span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 td.good { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.filters2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 8px 12px; align-items: end; }
+.fsel { display: grid; gap: 3px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; min-width: 0; }
+.fsel select, .fsel input { font: inherit; font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; min-width: 0; width: 100%; }
+.kpis2 .big { font-size: 28px; } .big.good { color: var(--ok); } .big.bad { color: var(--bad); }
+table.sortable th { cursor: pointer; user-select: none; } table.sortable th:hover { color: var(--ink); }
+tr.clickrow { cursor: pointer; } tr.clickrow:hover td { background: var(--surface-2); }
+table.bets td.wrap { white-space: normal; min-width: 220px; }
+td.res.hit { color: var(--ok); font-weight: 700; } td.res.miss { color: var(--bad); font-weight: 700; } td.res.void, td.res.pending { color: var(--muted); }
+.chart-wrap { max-width: 860px; } svg.chart { display: block; }
+svg.chart .grid { stroke: var(--line); stroke-width: 1; } svg.chart .ax { fill: var(--muted); font-size: 11px; font-family: var(--f-mono); }
+svg.chart .nbar { fill: var(--pip-off); } svg.chart .rline { stroke: var(--accent); stroke-width: 2.5; } svg.chart .pline { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+svg.chart .rdot { fill: var(--accent); }
+
 .empty { color: var(--muted); padding: 30px 0; }
 
 /* side sheet */
@@ -195,7 +208,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       <button class="tab" role="tab" id="tab-slips" aria-selected="false" data-view="slips">Slips<span class="ct" id="ct-slips"></span></button>
       <button class="tab" role="tab" id="tab-singles" aria-selected="false" data-view="singles">Singles<span class="ct" id="ct-singles"></span></button>
       <button class="tab" role="tab" id="tab-edges" aria-selected="false" data-view="edges">Situational<span class="ct" id="ct-edges"></span></button>
-      <button class="tab" role="tab" id="tab-learning" aria-selected="false" data-view="learning">Learning<span class="ct" id="ct-learning"></span></button>
+      <button class="tab" role="tab" id="tab-analysis" aria-selected="false" data-view="analysis">Data analysis<span class="ct" id="ct-analysis"></span></button>
     </nav>
   </div>
 </header>
@@ -459,43 +472,180 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
   }
   const P100 = x => x == null ? '—' : Math.round(x * 100) + '%';
   const frac = (k, n) => n ? `${k}/${n} (${Math.round(100 * k / n)}%)` : '—';
-  function renderLearning(main) {
-    if (!LJ) { main.append($('div', 'load', 'Loading the learning report…'));
-      fetch('learning.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(d => { LJ = d; document.getElementById('ct-learning').textContent = d.proposals.length; if (view === 'learning') render(); })
-        .catch(() => { main.replaceChildren($('p', 'note', 'No learning report yet. It is written every morning after yesterday is scored.')); });
-      return; }
-    const c = LJ.calibration, w = c.window;
-    const s0 = $('section', 'lsec'); s0.append($('h3', null, `Last ${c.window_days} days`));
-    const k = $('div', 'kpis');
-    [[frac(w.hits, w.n), 'picks landed'], [P100(w.avgP), 'average P promised'], [frac(LJ.diagnosis.type_right, LJ.diagnosis.games), 'match types right'], [LJ.step_ups.length, 'step-up candidates']]
-      .forEach(([v, l]) => { const d = $('div'); d.append($('span', null, l), $('div', 'big', v)); k.append(d); });
-    s0.append(k, $('p', 'note', 'Every pick on this board is logged before kick-off and scored after the match. Report built ' + LJ.built + '.'));
-    const gap = r => r.avgP == null ? null : (r.rate - r.avgP >= 0 ? 'good' : r.rate < r.avgP - 0.05 ? 'bad' : null);
-    const s1 = $('section', 'lsec'); s1.append($('h3', null, 'Are the percentages honest?'), $('p', 'note', 'Each band should land at least as often as the P it promised. Red means overconfident.'));
-    s1.append(lt(c.by_band, [{ h: 'P band', f: r => r.key }, { h: 'Landed', n: 1, f: r => frac(r.hits, r.n), cls: gap }, { h: 'Promised', n: 1, f: r => P100(r.avgP) }]));
-    s1.append(lt(c.by_market, [{ h: 'Market', f: r => r.key }, { h: 'Landed', n: 1, f: r => frac(r.hits, r.n), cls: gap }, { h: 'Promised', n: 1, f: r => P100(r.avgP) }]));
-    const s2 = $('section', 'lsec'); s2.append($('h3', null, 'Value left on the table'), $('p', 'note', 'For every hit: did the next line up land too? A high share means the lines are too cautious for that market.'));
-    s2.append(lt(LJ.headroom_market, [{ h: 'Market', f: r => r.market }, { h: 'Hits', n: 1, f: r => r.hits }, { h: 'Line + 1 also landed', n: 1, f: r => frac(r.plus1, r.hits) }, { h: 'Line + 2', n: 1, f: r => frac(r.plus2, r.hits) }, { h: 'Avg margin', n: 1, f: r => r.avg_margin }]));
-    const ul = $('ul'); LJ.step_ups.forEach(x => ul.append($('li', null, `${x.subject} ${x.market}: ${x.step_up} (picks ${x.n}, average actual ${x.avg_actual})`)));
-    if (!LJ.step_ups.length) ul.append($('li', null, 'No step-up candidates yet: a team or player needs 5+ scored picks on the same market.'));
-    s2.append($('div', 'subh', 'Step-up candidates'), ul);
-    const dg = LJ.diagnosis;
-    const s3 = $('section', 'lsec'); s3.append($('h3', null, 'Diagnosis: was the game what we expected?'));
-    s3.append($('p', null, `Match types right: ${frac(dg.type_right, dg.games)} · shot-share error ${dg.share_mae == null ? '—' : Math.round(dg.share_mae * 100) + ' points'} · misses: ${dg.miss_split.type_wrong} type wrong, ${dg.miss_split.type_right_pick_wrong} type right but pick wrong, ${dg.miss_split.not_reviewed} not reviewed.`));
-    if (dg.by_expected.length) s3.append(lt(dg.by_expected, [{ h: 'Expected type', f: r => r.type }, { h: 'Right', n: 1, f: r => frac(r.right, r.n) }]));
-    if (dg.league_bias.length) s3.append(lt(dg.league_bias, [{ h: 'League', f: r => r.league }, { h: 'Games', n: 1, f: r => r.n }, { h: 'Shots: actual − projected', n: 1, f: r => r.shots_bias }, { h: 'Tackles: actual − projected', n: 1, f: r => r.tackles_bias }]));
-    const s4 = $('section', 'lsec'); s4.append($('h3', null, 'Proposed changes'), $('p', 'note', 'Suggested by the evidence, never applied automatically. Agree them with Claude and they go into DECISIONS.md.'));
-    const pl = $('ul'); (LJ.proposals.length ? LJ.proposals : ['None yet: not enough evidence.']).forEach(t => pl.append($('li', null, t))); s4.append(pl);
-    const s5 = $('section', 'lsec'); s5.append($('h3', null, 'Latest misses'));
-    s5.append(lt(LJ.misses, [{ h: 'Date', f: r => r.date }, { h: 'Match', f: r => r.fixture }, { h: 'Bet', f: r => r.bet }, { h: 'Actual', n: 1, f: r => r.actual }, { h: 'Why', f: r => r.reason }, { h: 'Diagnosis', f: r => r.type }]));
-    main.append(s0, s1, s2, s3, s4, s5);
+  /* ---------- Data analysis ---------- */
+  let BJ = null, AF = null, ASORT = { k: 'd', dir: -1 }, GSORT = { k: 'n', dir: -1 }, APAGE = 50;
+  const AF0 = { period: 'all', lg: '', team: '', mk: '', grp: '', res: '', conf: '', band: '', fit: '', diag: '', q: '', by: 'lg' };
+  try { AF = Object.assign({}, AF0, JSON.parse(localStorage.getItem('bbb-af') || '{}')); } catch (e) { AF = Object.assign({}, AF0); }
+  const saveAF = () => { try { localStorage.setItem('bbb-af', JSON.stringify(AF)); } catch (e) {} };
+  const bandOf = P => P == null ? 'no P' : P >= .95 ? '95%+' : P >= .90 ? '90–95%' : P >= .85 ? '85–90%' : P >= .80 ? '80–85%' : 'under 80%';
+  const mkName = b => `${b.kind} ${b.mk}${b.dir === 'under' ? ' under' : ''}`;
+  const settled = b => b.res === 'HIT' || b.res === 'MISS';
+  const GROUPS = { lg: ['League', b => b.lg], team: ['Team', b => b.team || '—'], mk: ['Market', mkName], band: ['P band', b => bandOf(b.P)],
+    conf: ['Confidence', b => b.conf ? b.conf + ' of 5' : 'not rated'], fit: ['Match-type fit', b => b.fit || 'unknown'],
+    grp: ['Bet group', b => b.grp], d: ['Day', b => b.d], diag: ['Diagnosis', b => b.diag || 'not reviewed'], mt: ['Expected match type', b => (b.mt || '—').replace(/ —.*| \(.*/, '')] };
+
+  function filtered() {
+    const today = D ? D.date : new Date().toISOString().slice(0, 10);
+    const since = AF.period === 'all' ? '' : new Date(Date.parse(today) - (+AF.period) * 864e5).toISOString().slice(0, 10);
+    const q = AF.q.trim().toLowerCase();
+    return BJ.bets.filter(b => (!since || b.d >= since) && (!AF.lg || b.lg === AF.lg) && (!AF.team || b.team === AF.team || b.teams.includes(AF.team))
+      && (!AF.mk || mkName(b) === AF.mk) && (!AF.grp || b.grp === AF.grp) && (!AF.fit || (b.fit || 'unknown') === AF.fit)
+      && (!AF.band || bandOf(b.P) === AF.band) && (!AF.conf || (b.conf || 0) >= +AF.conf)
+      && (!AF.diag || (b.diag || 'not reviewed') === AF.diag)
+      && (!AF.res || (AF.res === 'settled' ? settled(b) : b.res === AF.res))
+      && (!q || (b.bet + ' ' + b.fx + ' ' + b.lg).toLowerCase().includes(q)));
+  }
+  function stats(rows) {
+    const s = rows.filter(settled), h = s.filter(b => b.res === 'HIT'), sp = s.filter(b => b.P != null), Ps = sp.map(b => b.P);
+    const hm = h.filter(b => b.mar != null);
+    return { n: rows.length, set: s.length, hits: h.length, miss: s.length - h.length, rate: s.length ? h.length / s.length : null,
+      avgP: Ps.length ? Ps.reduce((a, x) => a + x, 0) / Ps.length : null, voids: rows.filter(b => b.res === 'VOID').length,
+      pend: rows.filter(b => b.res === 'PENDING').length, plus1: hm.length ? hm.filter(b => b.mar >= 1).length / hm.length : null,
+      mar: hm.length ? hm.reduce((a, b) => a + b.mar, 0) / hm.length : null,
+      near: s.filter(b => b.res === 'MISS' && b.mar === -1).length,
+      rateP: sp.length ? sp.filter(b => b.res === 'HIT').length / sp.length : null, nP: sp.length };
+  }
+  // promised v landed is only measured on picks that carried a P (older session picks did not)
+  const gapOf = s => s.rateP == null || s.avgP == null ? null : s.rateP - s.avgP;
+  const gapCls = g => g == null ? '' : g >= 0 ? 'good' : g < -0.05 ? 'bad' : '';
+  const sgn = g => g == null ? '—' : (g >= 0 ? '+' : '−') + Math.abs(Math.round(g * 100)) + ' pts';
+  function select(id, label, opts, val, onch) {
+    const w = $('label', 'fsel'); w.htmlFor = id; w.append($('span', null, label));
+    const s = $('select'); s.id = id; opts.forEach(([v, t]) => { const o = $('option', null, t); o.value = v; if (v === val) o.selected = true; s.append(o); });
+    s.addEventListener('change', () => onch(s.value)); w.append(s); return w;
+  }
+  const uniq = f => [...new Set(BJ.bets.map(f).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
+  function renderAnalysis(main) {
+    if (!BJ || !LJ) {
+      main.append($('div', 'load', 'Loading the analysis…'));
+      Promise.all([BJ || fetch('bets.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+                   LJ || fetch('learning.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)])
+        .then(([b, l]) => { BJ = b; LJ = l || LJ; if (view === 'analysis') render(); })
+        .catch(() => main.replaceChildren($('p', 'note', 'The analysis data is not published yet. It is rebuilt every morning after yesterday is scored.')));
+      return;
+    }
+    const set = (k, v) => { AF[k] = v; APAGE = 50; saveAF(); render(); };
+    const head = $('section', 'lsec');
+    head.append($('h3', null, 'Data analysis'), $('p', 'note', 'Every pick the system has made, scored after the match. Filter it any way you like: the numbers, the breakdown and the table below all follow the filters.'));
+    const fl = $('div', 'filters2');
+    fl.append(select('af-period', 'Period', [['all', 'All time'], ['30', 'Last 30 days'], ['7', 'Last 7 days'], ['1', 'Yesterday + today']], AF.period, v => set('period', v)),
+      select('af-lg', 'League', [['', 'All leagues']].concat(uniq(b => b.lg).map(x => [x, x])), AF.lg, v => set('lg', v)),
+      select('af-team', 'Team', [['', 'All teams']].concat(uniq(b => b.team).concat(BJ.bets.flatMap(b => b.teams)).filter((x, i, a) => x && a.indexOf(x) === i).sort().map(x => [x, x])), AF.team, v => set('team', v)),
+      select('af-mk', 'Market', [['', 'All markets']].concat(uniq(mkName).map(x => [x, x])), AF.mk, v => set('mk', v)),
+      select('af-grp', 'Bet group', [['', 'All bets'], ['Single', 'Singles'], ['Slip leg', 'Slip legs'], ['Situational', 'Situational'], ['Board', 'Other board picks']], AF.grp, v => set('grp', v)),
+      select('af-res', 'Result', [['', 'Any result'], ['settled', 'Settled'], ['HIT', 'Hits'], ['MISS', 'Misses'], ['VOID', 'Voids'], ['PENDING', 'Pending']], AF.res, v => set('res', v)),
+      select('af-conf', 'Confidence', [['', 'Any'], ['3', '3+'], ['4', '4+'], ['5', '5']], AF.conf, v => set('conf', v)),
+      select('af-band', 'P band', [['', 'Any'], ['95%+', '95%+'], ['90–95%', '90–95%'], ['85–90%', '85–90%'], ['80–85%', '80–85%'], ['under 80%', 'under 80%'], ['no P', 'no P']], AF.band, v => set('band', v)),
+      select('af-fit', 'Match-type fit', [['', 'Any'], ['fits', 'Fits'], ['neutral', 'Neutral'], ['against type', 'Against'], ['unknown', 'Unknown']], AF.fit, v => set('fit', v)),
+      select('af-diag', 'Diagnosis', [['', 'Any'], ['type right', 'Type right'], ['type wrong', 'Type wrong'], ['not reviewed', 'Not reviewed']], AF.diag, v => set('diag', v)));
+    const qw = $('label', 'fsel'); qw.htmlFor = 'af-q'; qw.append($('span', null, 'Search'));
+    const qi = $('input'); qi.id = 'af-q'; qi.type = 'search'; qi.placeholder = 'player, team, bet…'; qi.value = AF.q;
+    qi.addEventListener('change', () => set('q', qi.value)); qw.append(qi);
+    const rs = $('button', 'chip', 'Reset filters'); rs.type = 'button'; rs.addEventListener('click', () => { AF = Object.assign({}, AF0, { by: AF.by }); saveAF(); render(); });
+    fl.append(qw, rs); head.append(fl); main.append(head);
+
+    const rows = filtered(), S = stats(rows), g = gapOf(S);
+    // KPIs
+    const k = $('div', 'kpis kpis2');
+    [[S.n, 'picks'], [S.set ? `${S.hits}/${S.set}` : '—', 'hits / settled'], [S.rate == null ? '—' : Math.round(S.rate * 100) + '%', 'hit rate'],
+     [S.avgP == null ? '—' : Math.round(S.avgP * 100) + '%', 'promised (avg P)'], [sgn(g), `landed − promised${S.nP && S.nP < S.set ? ' (' + S.nP + ' with P)' : ''}`, gapCls(g)],
+     [S.plus1 == null ? '—' : Math.round(S.plus1 * 100) + '%', 'hits where next line also landed'], [S.near, 'missed by one'], [S.voids, 'void'], [S.pend, 'pending']]
+      .forEach(([v, l, c]) => { const d = $('div'); d.append($('span', null, l), $('div', 'big ' + (c || ''), String(v))); k.append(d); });
+    const sl = BJ.slips.filter(s => (!AF.lg || s.league === AF.lg)), won = sl.filter(s => s.status === 'WON').length, lost = sl.filter(s => s.status === 'LOST').length;
+    const d2 = $('div'); d2.append($('span', null, 'slips won / lost'), $('div', 'big', `${won}/${lost}`)); k.append(d2);
+    const sec1 = $('section', 'lsec'); sec1.append(k); main.append(sec1);
+
+    // chart: hit rate v promised by day
+    const days = [...new Set(rows.filter(settled).map(b => b.d))].sort();
+    if (days.length) {
+      const pts = days.map(d => { const s = stats(rows.filter(b => b.d === d)); return { d, rate: s.rate, P: s.avgP, n: s.set }; });
+      const sec2 = $('section', 'lsec'); sec2.append($('h3', null, 'Hit rate by day'), $('p', 'note', 'Bars: settled picks that day. Line: hit rate. Dashed: what the picks promised.'));
+      sec2.append(dayChart(pts)); main.append(sec2);
+    }
+    // breakdown
+    const sec3 = $('section', 'lsec'); const bh = $('div', 'row'); bh.style.flexWrap = 'wrap';
+    bh.append($('h3', null, 'Breakdown'), select('af-by', 'Group by', Object.entries(GROUPS).map(([key, [n]]) => [key, n]), AF.by, v => set('by', v)));
+    sec3.append(bh, $('p', 'note', 'Red: landed 5+ points under what it promised. Green: at or above. Click a header to sort, a row to filter on it.'));
+    const gf = GROUPS[AF.by][1], gm = new Map(); rows.forEach(b => { const key = gf(b); if (!gm.has(key)) gm.set(key, []); gm.get(key).push(b); });
+    let G = [...gm.entries()].map(([key, rs]) => Object.assign({ key }, stats(rs)));
+    const gcol = [['key', GROUPS[AF.by][0]], ['n', 'Picks'], ['set', 'Settled'], ['hits', 'Hits'], ['miss', 'Misses'], ['rate', 'Hit rate'], ['avgP', 'Promised'], ['gap', 'Gap'], ['plus1', 'Next line also'], ['near', 'Missed by 1'], ['voids', 'Void'], ['pend', 'Pending']];
+    G.forEach(x => x.gap = gapOf(x));
+    G.sort((a, b) => { const x = a[GSORT.k], y = b[GSORT.k]; return (x == null) - (y == null) || (x > y ? 1 : x < y ? -1 : 0) * GSORT.dir; });
+    const tw = $('div', 'tbl-wrap'), t = $('table', 'sortable'), hr = $('tr');
+    gcol.forEach(([c, l]) => { const th = $('th', c === 'key' ? null : 'n', l + (GSORT.k === c ? (GSORT.dir > 0 ? ' ▲' : ' ▼') : '')); th.tabIndex = 0;
+      th.addEventListener('click', () => { GSORT = { k: c, dir: GSORT.k === c ? -GSORT.dir : -1 }; render(); }); hr.append(th); });
+    t.append(hr);
+    const fmt = (c, x) => c === 'rate' || c === 'avgP' || c === 'plus1' ? (x[c] == null ? '—' : Math.round(x[c] * 100) + '%') : c === 'gap' ? sgn(x.gap) : String(x[c] ?? '—');
+    G.forEach(x => { const tr = $('tr', 'clickrow'); gcol.forEach(([c]) => tr.append($('td', (c === 'key' ? '' : 'n ') + (c === 'gap' || c === 'rate' ? gapCls(x.gap) : ''), fmt(c, x))));
+      const fk = { lg: 'lg', team: 'team', mk: 'mk', band: 'band', grp: 'grp', fit: 'fit', diag: 'diag' }[AF.by];
+      if (fk) tr.addEventListener('click', () => set(fk, fk === 'fit' && x.key === 'unknown' ? 'unknown' : x.key)); t.append(tr); });
+    tw.append(t); sec3.append(tw); main.append(sec3);
+
+    // every bet
+    const sec4 = $('section', 'lsec'); sec4.append($('h3', null, `Every bet (${rows.length})`));
+    const bcol = [['d', 'Date'], ['bet', 'Bet'], ['res', 'Result'], ['P', 'P'], ['act', 'Actual'], ['mar', 'Margin'], ['fair', 'Fair'], ['conf', 'Conf'], ['fit', 'Fit'], ['fx', 'Match'], ['lg', 'League'], ['why', 'Why / diagnosis'], ['grp', 'Group']];
+    const R = rows.slice().sort((a, b) => { const x = a[ASORT.k], y = b[ASORT.k]; return (x == null || x === '') - (y == null || y === '') || (x > y ? 1 : x < y ? -1 : 0) * ASORT.dir; });
+    const tw2 = $('div', 'tbl-wrap'), t2 = $('table', 'sortable bets'), h2 = $('tr');
+    bcol.forEach(([c, l]) => { const th = $('th', ['P', 'fair', 'conf', 'act', 'mar'].includes(c) ? 'n' : null, l + (ASORT.k === c ? (ASORT.dir > 0 ? ' ▲' : ' ▼') : '')); th.tabIndex = 0;
+      th.addEventListener('click', () => { ASORT = { k: c, dir: ASORT.k === c ? -ASORT.dir : -1 }; render(); }); h2.append(th); });
+    t2.append(h2);
+    R.slice(0, APAGE).forEach(b => { const tr = $('tr');
+      const cell = { d: b.d + (b.ko ? ' ' + b.ko : ''), lg: b.lg, fx: b.fx, bet: b.bet, P: b.P == null ? '—' : Math.round(b.P * 100) + '%', fair: b.fair == null ? '—' : b.fair.toFixed(2),
+        conf: b.conf ?? '—', fit: b.fit || '—', act: b.act ?? '—', mar: b.mar == null ? '—' : (b.mar > 0 ? '+' : '') + b.mar, res: b.res,
+        why: [b.why, b.diag && b.act_type ? `${b.diag} (was ${b.act_type})` : b.diag].filter(Boolean).join(' · ') || '—', grp: b.grp };
+      bcol.forEach(([c]) => { const td = $('td', (['P', 'fair', 'conf', 'act', 'mar'].includes(c) ? 'n ' : '') + (c === 'res' ? 'res ' + b.res.toLowerCase() : c === 'why' ? 'wrap' : ''), String(cell[c])); tr.append(td); });
+      t2.append(tr); });
+    tw2.append(t2); sec4.append(tw2);
+    if (R.length > APAGE) { const mb = $('button', 'chip', `Show ${Math.min(100, R.length - APAGE)} more`); mb.type = 'button'; mb.addEventListener('click', () => { APAGE += 100; render(); }); sec4.append(mb); }
+    main.append(sec4);
+
+    // slips
+    const sec5 = $('section', 'lsec'); sec5.append($('h3', null, `Slips (${sl.length})`));
+    sec5.append(lt(sl.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')), [{ h: 'Date', f: r => r.date }, { h: 'League', f: r => r.league }, { h: 'Kind', f: r => r.kind }, { h: 'Legs landed', n: 1, f: r => `${r.hits}/${r.n}` },
+      { h: 'Promised', n: 1, f: r => Math.round(r.P * 100) + '%' }, { h: 'Fair', n: 1, f: r => (1 / r.P).toFixed(2) }, { h: 'Result', f: r => r.status, cls: r => r.status === 'WON' ? 'good' : r.status === 'LOST' ? 'bad' : '' }]));
+    main.append(sec5);
+
+    // learning findings (system-wide, not filtered)
+    if (LJ) {
+      const s6 = $('section', 'lsec'); s6.append($('h3', null, 'Value left on the table'), $('p', 'note', 'All picks, not filtered. For every hit: did the next line up land too? High shares mean the lines are too cautious for that market.'));
+      s6.append(lt(LJ.headroom_market, [{ h: 'Market', f: r => r.market }, { h: 'Hits', n: 1, f: r => r.hits }, { h: 'Line + 1 also landed', n: 1, f: r => frac(r.plus1, r.hits) }, { h: 'Line + 2', n: 1, f: r => frac(r.plus2, r.hits) }, { h: 'Avg margin', n: 1, f: r => r.avg_margin }]));
+      const ul = $('ul'); LJ.step_ups.forEach(x => ul.append($('li', null, `${x.subject} ${x.market}: ${x.step_up} (picks ${x.n}, average actual ${x.avg_actual})`)));
+      if (!LJ.step_ups.length) ul.append($('li', null, 'No step-up candidates yet: a team or player needs 5+ scored picks on the same market.'));
+      s6.append($('div', 'subh', 'Step-up candidates'), ul);
+      const dg = LJ.diagnosis, s7 = $('section', 'lsec');
+      s7.append($('h3', null, 'Diagnosis: was the game what we expected?'), $('p', null, `Match types right: ${frac(dg.type_right, dg.games)} · shot-share error ${dg.share_mae == null ? '—' : Math.round(dg.share_mae * 100) + ' points'} · misses in the last ${LJ.calibration.window_days} days: ${dg.miss_split.type_wrong} type wrong, ${dg.miss_split.type_right_pick_wrong} type right but pick wrong, ${dg.miss_split.not_reviewed} not reviewed.`));
+      const conf = dg.confusion || {}, types = [...new Set(Object.keys(conf).concat(...Object.values(conf).map(o => Object.keys(o))))];
+      if (types.length) { const cw = $('div', 'tbl-wrap'), ct = $('table'), chr = $('tr'); chr.append($('th', null, 'Expected ↓ / happened →')); types.forEach(x => chr.append($('th', 'n', x))); ct.append(chr);
+        Object.keys(conf).forEach(e => { const tr = $('tr'); tr.append($('td', null, e)); types.forEach(x => tr.append($('td', 'n ' + (x === e && conf[e][x] ? 'good' : ''), String(conf[e][x] || '')))); ct.append(tr); }); cw.append(ct); s7.append(cw); }
+      if (dg.league_bias.length) s7.append(lt(dg.league_bias, [{ h: 'League', f: r => r.league }, { h: 'Games', n: 1, f: r => r.n }, { h: 'Shots: actual − projected', n: 1, f: r => r.shots_bias }, { h: 'Tackles: actual − projected', n: 1, f: r => r.tackles_bias }]));
+      const s8 = $('section', 'lsec'); s8.append($('h3', null, 'Proposed changes'), $('p', 'note', 'What the evidence says should change. Never applied automatically: agree them with Claude and they go into DECISIONS.md.'));
+      const pl = $('ul'); (LJ.proposals.length ? LJ.proposals : ['None yet: not enough evidence.']).forEach(x => pl.append($('li', null, x))); s8.append(pl);
+      main.append(s6, s7, s8);
+    }
+  }
+
+  function dayChart(pts) {
+    const W = 760, H = 220, L = 40, R = 12, T = 12, B = 34, ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('width', '100%'); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Hit rate by day against promised P'); svg.classList.add('chart');
+    const el = (n, a, txt) => { const e = document.createElementNS(ns, n); Object.entries(a).forEach(([k, v]) => e.setAttribute(k, v)); if (txt != null) e.textContent = txt; svg.append(e); return e; };
+    const iw = W - L - R, ih = H - T - B, step = iw / pts.length, y = v => T + ih * (1 - v), maxN = Math.max(...pts.map(p => p.n));
+    [0, .25, .5, .75, 1].forEach(v => { el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), class: 'grid' }); el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end', class: 'ax' }, Math.round(v * 100) + '%'); });
+    pts.forEach((p, i) => { const h = ih * 0.35 * p.n / maxN, x = L + i * step + step * 0.2; el('rect', { x, y: T + ih - h, width: step * 0.6, height: h, class: 'nbar' });
+      if (pts.length <= 16 || i % Math.ceil(pts.length / 12) === 0) el('text', { x: L + i * step + step / 2, y: H - 14, 'text-anchor': 'middle', class: 'ax' }, p.d.slice(5)); });
+    const line = (k, cls) => { const P = pts.map((p, i) => p[k] == null ? null : [L + i * step + step / 2, y(p[k])]).filter(Boolean);
+      if (P.length) el('polyline', { points: P.map(p => p.join(',')).join(' '), class: cls, fill: 'none' }); return P; };
+    line('P', 'pline'); const RP = line('rate', 'rline');
+    RP.forEach((p, i) => { const c = el('circle', { cx: p[0], cy: p[1], r: 4, class: 'rdot' }); const d = pts.filter(q => q.rate != null)[i];
+      const tt = document.createElementNS(ns, 'title'); tt.textContent = `${d.d}: ${Math.round(d.rate * 100)}% of ${d.n} (promised ${d.P == null ? '—' : Math.round(d.P * 100) + '%'})`; c.append(tt); });
+    const w = $('div', 'chart-wrap'); w.append(svg); return w;
   }
 
   function render() {
     const main = document.getElementById('main'); main.replaceChildren();
     document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === view)));
-    ({ board: renderBoard, slips: renderSlips, singles: renderSingles, edges: renderEdges, learning: renderLearning })[view](main);
+    ({ board: renderBoard, slips: renderSlips, singles: renderSingles, edges: renderEdges, analysis: renderAnalysis })[view](main);
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { view = t.dataset.view; render(); }));
   document.getElementById('scrim').addEventListener('click', closeSheet);
@@ -514,7 +664,8 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     document.getElementById('ct-edges').textContent = all.reduce((s, g) => s + g.edges.length, 0);
     render();
     const m = /^#g(\d+)$/.exec(location.hash); if (m) openGame(m[1]);
-    fetch('learning.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j) { LJ = j; document.getElementById('ct-learning').textContent = j.proposals.length; } }).catch(() => {});
+    fetch('learning.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j) LJ = j; }).catch(() => {});
+    fetch('bets.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j) { BJ = j; document.getElementById('ct-analysis').textContent = j.bets.filter(b => b.res === 'HIT' || b.res === 'MISS').length; if (view === 'analysis') render(); } }).catch(() => {});
   }).catch(err => {
     document.getElementById('main').replaceChildren($('div', 'load', 'Today\'s board did not load (' + err.message + '). Reload the page; if it stays empty, the day\'s data has not been published yet.'));
   });
