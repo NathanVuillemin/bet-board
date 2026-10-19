@@ -104,6 +104,15 @@ details.how div { max-width: 76ch; padding: 8px 0 4px; display: grid; gap: 6px; 
 .tag.against { background: var(--bad-soft); color: var(--bad); }
 .tag.neutral { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
 .tag.sit { background: var(--warn-soft); color: var(--warn); }
+.tag.up { background: var(--accent-soft); color: var(--ink); }
+.lsec { padding-block: 16px 4px; display: grid; gap: 8px; max-width: 980px; }
+.lsec h3 { margin: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .05em; font-size: 19px; }
+.lsec p { margin: 0; max-width: 80ch; }
+.lsec ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.big { font-family: var(--f-display); font-size: 34px; font-weight: 700; line-height: 1; }
+.kpis { display: flex; flex-wrap: wrap; gap: 10px 28px; }
+.kpis div span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+td.good { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
 .empty { color: var(--muted); padding: 30px 0; }
 
 /* side sheet */
@@ -148,10 +157,10 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
 .reason ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .splits { display: grid; gap: 4px; }
 .split { display: grid; grid-template-columns: minmax(110px, 190px) 1fr 74px; gap: 10px; align-items: center; font-size: 13px; }
-.split .bar { height: 8px; border-radius: 4px; background: var(--pip-off); overflow: hidden; }
-.split .bar i { display: block; height: 100%; background: var(--muted); }
+.split .sbar { height: 8px; border-radius: 4px; background: var(--pip-off); overflow: hidden; }
+.split .sbar i { display: block; height: 100%; background: var(--muted); }
 .split.hl { font-weight: 700; }
-.split.hl .bar i { background: var(--accent); }
+.split.hl .sbar i { background: var(--accent); }
 .split.hind { opacity: .65; font-style: italic; }
 .split .v { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 .subh { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
@@ -186,6 +195,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       <button class="tab" role="tab" id="tab-slips" aria-selected="false" data-view="slips">Slips<span class="ct" id="ct-slips"></span></button>
       <button class="tab" role="tab" id="tab-singles" aria-selected="false" data-view="singles">Singles<span class="ct" id="ct-singles"></span></button>
       <button class="tab" role="tab" id="tab-edges" aria-selected="false" data-view="edges">Situational<span class="ct" id="ct-edges"></span></button>
+      <button class="tab" role="tab" id="tab-learning" aria-selected="false" data-view="learning">Learning<span class="ct" id="ct-learning"></span></button>
     </nav>
   </div>
 </header>
@@ -375,7 +385,10 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     const ps = $('span', 'ps');
     if (isEdge) ps.append($('span', 'tag sit', 'situational'), $('span', null, p.cond));
     else { ps.append(fitTag(p.fit), $('span', null, p.kind === 'player' ? 'player' : p.kind === 'team' ? 'team' : 'match'));
-      if (p.like && p.like[1]) ps.append($('span', null, `like tonight ${p.like[0]}/${p.like[1]}`)); }
+      if (p.like && p.like[1]) ps.append($('span', null, `like tonight ${p.like[0]}/${p.like[1]}`));
+      if (p.next && p.next.n) ps.append($('span', (p.next.k + 1) / (p.next.n + 2) >= 0.8 ? 'tag up' : null, `next ${p.next.line} ${p.next.k}/${p.next.n}`));
+      if (p.history && p.history.step_up) ps.append($('span', 'tag up', 'step-up'));
+    }
     bt.append($('span', 'pl', p.label), pm, ps); w.append(bt);
     let body = null;
     bt.addEventListener('click', () => {
@@ -390,7 +403,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
           const [a, n] = p.splits[k]; if (!n && k !== 'overall') return;
           const hl = tn && (k === tn.status || k === 'v ' + tn.opp || (k === 'home' && side === 'home') || (k === 'away' && side === 'away'));
           const r = $('div', 'split' + (hl ? ' hl' : '') + (k.includes('hindsight') ? ' hind' : ''));
-          const bar = $('div', 'bar'); const i = $('i'); i.style.width = (n ? 100 * a / n : 0) + '%'; bar.append(i);
+          const bar = $('div', 'sbar'); const i = $('i'); i.style.width = (n ? 100 * a / n : 0) + '%'; bar.append(i);
           r.append($('span', null, (SPLIT_NAME[k] || k) + (hl ? ' ← tonight' : '')), bar, $('span', 'v', `${a}/${n}`)); sp.append(r);
         });
         body.append(sp);
@@ -437,10 +450,52 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     main.append(box);
   }
 
+  let LJ = null;
+  function lt(rows, cols) {
+    const w = $('div', 'tbl-wrap'); const t = $('table'); const h = $('tr');
+    cols.forEach(c => h.append($('th', c.n ? 'n' : null, c.h))); t.append(h);
+    rows.forEach(r => { const tr = $('tr'); cols.forEach(c => { const v = c.f(r); const td = $('td', (c.n ? 'n ' : '') + (c.cls ? c.cls(r) : ''), v == null ? '—' : String(v)); tr.append(td); }); t.append(tr); });
+    w.append(t); return w;
+  }
+  const P100 = x => x == null ? '—' : Math.round(x * 100) + '%';
+  const frac = (k, n) => n ? `${k}/${n} (${Math.round(100 * k / n)}%)` : '—';
+  function renderLearning(main) {
+    if (!LJ) { main.append($('div', 'load', 'Loading the learning report…'));
+      fetch('learning.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => { LJ = d; document.getElementById('ct-learning').textContent = d.proposals.length; if (view === 'learning') render(); })
+        .catch(() => { main.replaceChildren($('p', 'note', 'No learning report yet. It is written every morning after yesterday is scored.')); });
+      return; }
+    const c = LJ.calibration, w = c.window;
+    const s0 = $('section', 'lsec'); s0.append($('h3', null, `Last ${c.window_days} days`));
+    const k = $('div', 'kpis');
+    [[frac(w.hits, w.n), 'picks landed'], [P100(w.avgP), 'average P promised'], [frac(LJ.diagnosis.type_right, LJ.diagnosis.games), 'match types right'], [LJ.step_ups.length, 'step-up candidates']]
+      .forEach(([v, l]) => { const d = $('div'); d.append($('span', null, l), $('div', 'big', v)); k.append(d); });
+    s0.append(k, $('p', 'note', 'Every pick on this board is logged before kick-off and scored after the match. Report built ' + LJ.built + '.'));
+    const gap = r => r.avgP == null ? null : (r.rate - r.avgP >= 0 ? 'good' : r.rate < r.avgP - 0.05 ? 'bad' : null);
+    const s1 = $('section', 'lsec'); s1.append($('h3', null, 'Are the percentages honest?'), $('p', 'note', 'Each band should land at least as often as the P it promised. Red means overconfident.'));
+    s1.append(lt(c.by_band, [{ h: 'P band', f: r => r.key }, { h: 'Landed', n: 1, f: r => frac(r.hits, r.n), cls: gap }, { h: 'Promised', n: 1, f: r => P100(r.avgP) }]));
+    s1.append(lt(c.by_market, [{ h: 'Market', f: r => r.key }, { h: 'Landed', n: 1, f: r => frac(r.hits, r.n), cls: gap }, { h: 'Promised', n: 1, f: r => P100(r.avgP) }]));
+    const s2 = $('section', 'lsec'); s2.append($('h3', null, 'Value left on the table'), $('p', 'note', 'For every hit: did the next line up land too? A high share means the lines are too cautious for that market.'));
+    s2.append(lt(LJ.headroom_market, [{ h: 'Market', f: r => r.market }, { h: 'Hits', n: 1, f: r => r.hits }, { h: 'Line + 1 also landed', n: 1, f: r => frac(r.plus1, r.hits) }, { h: 'Line + 2', n: 1, f: r => frac(r.plus2, r.hits) }, { h: 'Avg margin', n: 1, f: r => r.avg_margin }]));
+    const ul = $('ul'); LJ.step_ups.forEach(x => ul.append($('li', null, `${x.subject} ${x.market}: ${x.step_up} (picks ${x.n}, average actual ${x.avg_actual})`)));
+    if (!LJ.step_ups.length) ul.append($('li', null, 'No step-up candidates yet: a team or player needs 5+ scored picks on the same market.'));
+    s2.append($('div', 'subh', 'Step-up candidates'), ul);
+    const dg = LJ.diagnosis;
+    const s3 = $('section', 'lsec'); s3.append($('h3', null, 'Diagnosis: was the game what we expected?'));
+    s3.append($('p', null, `Match types right: ${frac(dg.type_right, dg.games)} · shot-share error ${dg.share_mae == null ? '—' : Math.round(dg.share_mae * 100) + ' points'} · misses: ${dg.miss_split.type_wrong} type wrong, ${dg.miss_split.type_right_pick_wrong} type right but pick wrong, ${dg.miss_split.not_reviewed} not reviewed.`));
+    if (dg.by_expected.length) s3.append(lt(dg.by_expected, [{ h: 'Expected type', f: r => r.type }, { h: 'Right', n: 1, f: r => frac(r.right, r.n) }]));
+    if (dg.league_bias.length) s3.append(lt(dg.league_bias, [{ h: 'League', f: r => r.league }, { h: 'Games', n: 1, f: r => r.n }, { h: 'Shots: actual − projected', n: 1, f: r => r.shots_bias }, { h: 'Tackles: actual − projected', n: 1, f: r => r.tackles_bias }]));
+    const s4 = $('section', 'lsec'); s4.append($('h3', null, 'Proposed changes'), $('p', 'note', 'Suggested by the evidence, never applied automatically. Agree them with Claude and they go into DECISIONS.md.'));
+    const pl = $('ul'); (LJ.proposals.length ? LJ.proposals : ['None yet: not enough evidence.']).forEach(t => pl.append($('li', null, t))); s4.append(pl);
+    const s5 = $('section', 'lsec'); s5.append($('h3', null, 'Latest misses'));
+    s5.append(lt(LJ.misses, [{ h: 'Date', f: r => r.date }, { h: 'Match', f: r => r.fixture }, { h: 'Bet', f: r => r.bet }, { h: 'Actual', n: 1, f: r => r.actual }, { h: 'Why', f: r => r.reason }, { h: 'Diagnosis', f: r => r.type }]));
+    main.append(s0, s1, s2, s3, s4, s5);
+  }
+
   function render() {
     const main = document.getElementById('main'); main.replaceChildren();
     document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === view)));
-    ({ board: renderBoard, slips: renderSlips, singles: renderSingles, edges: renderEdges })[view](main);
+    ({ board: renderBoard, slips: renderSlips, singles: renderSingles, edges: renderEdges, learning: renderLearning })[view](main);
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { view = t.dataset.view; render(); }));
   document.getElementById('scrim').addEventListener('click', closeSheet);
@@ -459,6 +514,7 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
     document.getElementById('ct-edges').textContent = all.reduce((s, g) => s + g.edges.length, 0);
     render();
     const m = /^#g(\d+)$/.exec(location.hash); if (m) openGame(m[1]);
+    fetch('learning.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j) { LJ = j; document.getElementById('ct-learning').textContent = j.proposals.length; } }).catch(() => {});
   }).catch(err => {
     document.getElementById('main').replaceChildren($('div', 'load', 'Today\'s board did not load (' + err.message + '). Reload the page; if it stays empty, the day\'s data has not been published yet.'));
   });
