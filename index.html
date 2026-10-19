@@ -371,6 +371,12 @@ td.n, th.n { text-align: right; font-family: var(--f-mono); font-variant-numeric
       const s3 = sec('Situational', 'lines that only hold in this kind of game — unproven, tracked');
       const ek = $('div', 'picks'); g.edges.forEach(e => ek.append(pickRow(e, g, true))); s3.append(ek); b.append(s3);
     }
+    // trends: last 5 v the 8 before, with how much such runs usually keep
+    if (g.trends && g.trends.length) {
+      const sT = sec('Trends', 'last 5 matches v the 8 before · history says how much usually carries on');
+      const ul2 = $('ul'); g.trends.forEach(t => { const li = $('li', null, t.text); const m = $('div', 'subh', 'Points to: ' + t.markets); m.style.textTransform = 'none'; li.append(m); ul2.append(li); });
+      sT.append(ul2); b.append(sT);
+    }
     // 3 style
     const s4 = sec('How they play', g.style.sH ? g.style.sH.season + ', league matches' : '');
     s4.append(para(`${g.home}: ${g.style.home}`), para(`${g.away}: ${g.style.away}`));
