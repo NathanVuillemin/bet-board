@@ -287,7 +287,7 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
   const fx = n => n == null ? '—' : n.toFixed(2);
   const pips = c => { const s = $('span', 'pips'); s.setAttribute('aria-label', `confidence ${c} of 5`); for (let i = 1; i <= 5; i++) s.append($('i', i <= c ? 'on' : '')); return s; };
   const fitTag = f => $('span', 'tag ' + (f === 'fits' ? 'fits' : f === 'against type' ? 'against' : 'neutral'), f === 'fits' ? 'fits type' : f === 'against type' ? 'against type' : 'neutral');
-  let D = null, view = 'board', minConf = 1, fitsOnly = false;
+  let D = null, view = 'board', minConf = 1, fitsOnly = false, playersOnly = false;
   try { const v = localStorage.getItem('bbb-conf'); if (v) minConf = +v; } catch (e) {}
 
   const statusPill = g => {
@@ -299,7 +299,8 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
   const scoreOf = (g, side) => g.score ? g.score.split('-')[side === 'home' ? 0 : 1] : null;
   const ord = n => n + (['th','st','nd','rd'][(n % 100 - 20) % 10] || ['th','st','nd','rd'][n % 100] || 'th');
   const keyAbs = g => ['home', 'away'].flatMap(s => (g.absences[s] || []).filter(a => a.key).map(a => a.name));
-  const visiblePicks = g => g.picks.filter(p => p.conf >= minConf && (!fitsOnly || p.fit === 'fits'));
+  const visiblePicks = g => g.picks.filter(p => p.conf >= minConf && (!fitsOnly || p.fit === 'fits') && (!playersOnly || p.kind === 'player'));
+  const bestPlayer = g => g.picks.filter(p => p.kind === 'player').sort((a, b) => b.conf - a.conf || b.P - a.P)[0];
 
   function teamLine(g, side) {
     const t = $('div', 'team');
@@ -327,6 +328,9 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
       m.children[1].append($('span', 'fair', fx(top.fair)));
       tp.append(m); c.append(tp);
     }
+    const bp = bestPlayer(g);
+    if (bp && (!top || bp.id !== top.id)) { const pp = $('div', 'mostline'); pp.append($('span', 'lbl', 'Top player pick'), $('b', null, bp.label), $('span', 'pct', pct(bp.P)), $('span', null, 'fair '));
+      pp.lastChild.append($('span', 'fair', fx(bp.fair))); c.append(pp); }
     c.append($('div', 'why', g.why[0]));
     const f = $('div', 'foot');
     const vp = visiblePicks(g).length;
@@ -354,6 +358,8 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
       b.addEventListener('click', () => { minConf = v; try { localStorage.setItem('bbb-conf', v); } catch (e) {} render(); }); fl.append(b); });
     const fb = $('button', 'chip', 'Fits type only'); fb.type = 'button'; fb.setAttribute('aria-pressed', String(fitsOnly));
     fb.addEventListener('click', () => { fitsOnly = !fitsOnly; render(); }); fl.append(fb);
+    const pb = $('button', 'chip', 'Players only'); pb.type = 'button'; pb.setAttribute('aria-pressed', String(playersOnly));
+    pb.addEventListener('click', () => { playersOnly = !playersOnly; render(); }); fl.append(pb);
     bar.append(stats, fl); main.append(bar, howTo());
     D.leagues.forEach(l => {
       const sec = $('section', 'league'); const h = $('div', 'league-h');
@@ -416,9 +422,13 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
     }
 
     // 2 picks
-    const vis = visiblePicks(g);
-    const s2 = sec('Picks', `${vis.length}${vis.length !== g.picks.length ? ' of ' + g.picks.length + ' (filter on)' : ''} · sorted by confidence`);
-    const pk = $('div', 'picks'); vis.forEach(p => pk.append(pickRow(p, g))); s2.append(pk); b.append(s2);
+    const vis = visiblePicks(g), visP = vis.filter(p => p.kind === 'player'), visT = vis.filter(p => p.kind !== 'player');
+    const nP = g.picks.filter(p => p.kind === 'player').length, nT = g.picks.length - nP;
+    const sP = sec('Player picks', `${visP.length}${visP.length !== nP ? ' of ' + nP + ' (filter on)' : ''} · confirmed starters only · sorted by confidence`);
+    if (!nP) sP.append($('p', 'tnote', 'No player line passed both sides of the match-up (his record 83%+, the projection 80%+ and what this opponent allows 80%+).'));
+    const pk1 = $('div', 'picks'); visP.forEach(p => pk1.append(pickRow(p, g))); sP.append(pk1); b.append(sP);
+    const s2 = sec('Team & match picks', `${visT.length}${visT.length !== nT ? ' of ' + nT + ' (filter on)' : ''} · sorted by confidence`);
+    const pk = $('div', 'picks'); visT.forEach(p => pk.append(pickRow(p, g))); s2.append(pk); b.append(s2);
     if (g.edges.length) {
       const s3 = sec('Situational', 'lines that only hold in this kind of game — unproven, tracked');
       const ek = $('div', 'picks'); g.edges.forEach(e => ek.append(pickRow(e, g, true))); s3.append(ek); b.append(s3);
