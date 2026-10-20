@@ -225,6 +225,8 @@ table.avgs td:first-child { color: var(--muted); }
 .linkbtn { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font-weight: 600; font-size: 13px; width: fit-content; }
 .tnote { font-size: 12px; color: var(--muted); }
 
+table.lgr td.barc { position: relative; width: 140px; min-width: 100px; } table.lgr td.barc i { position: absolute; top: 35%; height: 30%; border-radius: 2px; }
+table.lgr td.barc i { background: var(--accent); } td.dim { color: var(--muted); }
 /* slip builder */
 .acts { display: flex; align-items: center; gap: 6px; margin-right: 10px; } .acts .tick { margin: 0; } .legrow .acts { margin: 0; }
 .tick.sbt[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
@@ -266,6 +268,7 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
       <button class="tab" role="tab" id="tab-singles" aria-selected="false" data-view="singles">Singles<span class="ct" id="ct-singles"></span></button>
       <button class="tab" role="tab" id="tab-edges" aria-selected="false" data-view="edges">Situational<span class="ct" id="ct-edges"></span></button>
       <button class="tab" role="tab" id="tab-analysis" aria-selected="false" data-view="analysis">Performance<span class="ct" id="ct-analysis"></span></button>
+      <button class="tab" role="tab" id="tab-leagues" aria-selected="false" data-view="leagues">Leagues</button>
     </nav>
     <button class="chip mybtn" type="button" id="mybtn">My bets</button>
   </div>
@@ -861,6 +864,40 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
   }
   document.getElementById('sbbar').addEventListener('click', openSlip);
 
+
+  /* ---------- Leagues: cross-league ratings (tools/league-ratings.py) and tonight's cup match-ups ---------- */
+  function renderLeagues(main) {
+    const R = D.leagueRatings;
+    const s0 = $('section', 'lsec'); s0.append($('h3', null, 'League ratings'));
+    if (!R) { s0.append($('p', 'note', 'Not built yet.')); main.append(s0); return; }
+    s0.append($('p', 'note', `How strong each league is when its clubs meet clubs from other leagues: ${R.matches} European cup matches (Champions League, Europa League, Conference League; 24/25, 25/26 and this season). Rating = goals a game a club is worth against a Premier League club with the same domestic goal difference (Premier League = 0). A club's cross-league strength = ${R.slope} × its domestic goal difference per game + its league's rating.`));
+    if (R.check) s0.append($('p', 'note', `Tested on ${R.check.test} later matches it had not seen: error ${R.check.rmse_with_leagues} goals with league ratings v ${R.check.rmse_domestic_gd_only} from domestic goal difference alone; winner direction right ${Math.round(R.check.winner_right_with_leagues * 100)}% v ${Math.round(R.check.winner_right_domestic_only * 100)}%.`));
+    const V = R.volume || {};
+    const eff = (k, r) => V[k] ? Math.exp(V[k].beta * r) : null;
+    const max = Math.max(...R.leagues.map(l => Math.abs(l.rating)), 0.1);
+    const w = $('div', 'tbl-wrap'), t = $('table', 'lgr'), h = $('tr');
+    ['League', 'Rating', 'Strength', 'Cup matches', 'Shots v equal PL side', 'On target v equal PL side'].forEach((x, i) => h.append($('th', i === 1 || i >= 3 ? 'n' : null, x))); t.append(h);
+    const lo = Math.min(...R.leagues.map(l => l.rating)), hi = Math.max(...R.leagues.map(l => l.rating));
+    R.leagues.forEach(l => { const tr = $('tr'); const bar = $('td', 'barc'); const i = $('i'); i.style.width = (6 + 94 * (l.rating - lo) / ((hi - lo) || 1)) + '%'; i.style.left = '0'; bar.append(i);
+      const fs = eff('sh', l.rating), fo = eff('sot', l.rating);
+      tr.append($('td', null, l.name), $('td', 'n', (l.rating >= 0 ? '+' : '') + l.rating.toFixed(2)), bar, $('td', 'n' + (l.cup_matches < 30 ? ' dim' : ''), String(l.cup_matches)),
+        $('td', 'n', fs ? '×' + fs.toFixed(2) : '—'), $('td', 'n', fo ? '×' + fo.toFixed(2) : '—')); t.append(tr); });
+    w.append(t); s0.append(w);
+    s0.append($('p', 'tnote', 'Grey match counts (under 30): rough rating, pulled towards average. "Shots v equal PL side" = how a club\'s shots change against a Premier League club with the same domestic goal difference' + (V.sh ? `, from ${V.sh.n} team-matches in the Champions League` : ' (not fitted yet)') + '.'));
+    main.append(s0);
+    // tonight's cup match-ups
+    const cups = D.leagues.flatMap(l => l.games).filter(g => g.cross);
+    const s1 = $('section', 'lsec'); s1.append($('h3', null, `Cross-league match-ups on this board (${cups.length})`));
+    if (!cups.length) s1.append($('p', 'note', 'No cross-league games on this board.'));
+    else {
+      s1.append(lt(cups, [{ h: 'Kick-off', f: g => g.kickoff }, { h: 'Home', f: g => `${g.home} (${g.cross.home.league})` }, { h: 'Rate', n: 1, f: g => (g.cross.home.S >= 0 ? '+' : '') + g.cross.home.S.toFixed(2) },
+        { h: 'Away', f: g => `${g.away} (${g.cross.away.league})` }, { h: 'Rate', n: 1, f: g => (g.cross.away.S >= 0 ? '+' : '') + g.cross.away.S.toFixed(2) },
+        { h: 'Exp. goal diff', n: 1, f: g => (g.cross.egd >= 0 ? '+' : '') + g.cross.egd.toFixed(2) }, { h: 'Favourite', f: g => g.cross.fav || 'even' },
+        { h: 'Meetings', f: g => g.h2h && g.h2h.n ? `${g.h2h.n} (${g.h2h.avgGoals} goals/game)` : 'none' }]));
+      s1.querySelectorAll('tr').forEach((tr, i) => { if (!i) return; tr.classList.add('clickrow'); tr.addEventListener('click', () => openGame(cups[i - 1].eventId)); });
+    }
+    main.append(s1);
+  }
   /* ---------- other views ---------- */
   function findPick(id) { for (const l of D.leagues) for (const g of l.games) { const p = g.picks.find(x => x.id === id); if (p) return [g, p]; } return [null, null]; }
   function legBtn(x) {
@@ -1145,7 +1182,7 @@ table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; m
   function render() {
     const main = document.getElementById('main'); main.replaceChildren();
     document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.view === view)));
-    ({ board: renderBoard, slips: renderSlips, singles: renderSingles, edges: renderEdges, analysis: renderAnalysis })[view](main);
+    ({ board: renderBoard, slips: renderSlips, singles: renderSingles, edges: renderEdges, analysis: renderAnalysis, leagues: renderLeagues })[view](main);
   }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { view = t.dataset.view; render(); }));
   document.getElementById('mybtn').addEventListener('click', openMySettings); syncBadge(); if (tok()) mySync();

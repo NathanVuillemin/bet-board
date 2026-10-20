@@ -1,6 +1,6 @@
 {
  "date": "2026-10-20",
- "built": "2026-10-20T13:49+00:00",
+ "built": "2026-10-20T14:52+00:00",
  "leagues": [
   {
    "name": "UEFA Champions League",
@@ -19,9 +19,35 @@
      "lon": 49.919531,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: Sabah FK (Misli Premier League -2.41, domestic GD +2.01/game) rate -1.59; Borussia Dortmund (Bundesliga -0.76, domestic GD +1.11/game) rate -0.30. Expected goal difference -0.81 for Sabah FK incl. home advantage → Borussia Dortmund favourite. No previous meetings.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 30 shots projected"
      ],
+     "cross": {
+      "home": {
+       "S": -1.5901753846153845,
+       "league": "Misli Premier League",
+       "lr": -2.409,
+       "known": true,
+       "gd": 2.43,
+       "prevgd": 1.515,
+       "m": 7,
+       "dgd": 2.01
+      },
+      "away": {
+       "S": -0.303964,
+       "league": "Bundesliga",
+       "lr": -0.758,
+       "known": true,
+       "gd": 1.17,
+       "prevgd": 1.059,
+       "m": 6,
+       "dgd": 1.11
+      },
+      "egd": -0.81,
+      "fav": "Borussia Dortmund",
+      "text": "Cross-league: Sabah FK (Misli Premier League -2.41, domestic GD +2.01/game) rate -1.59; Borussia Dortmund (Bundesliga -0.76, domestic GD +1.11/game) rate -0.30. Expected goal difference -0.81 for Sabah FK incl. home advantage → Borussia Dortmund favourite. No previous meetings."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -97,13 +123,13 @@
      },
      "tonight": {
       "home": {
-       "status": "favourite",
+       "status": "underdog",
        "opp": "top half",
        "ppg": 2.71,
        "band": "top 6"
       },
       "away": {
-       "status": "underdog",
+       "status": "favourite",
        "opp": "bottom half",
        "ppg": 2.33,
        "band": "top 6"
@@ -2556,7 +2582,7 @@
        "reasons": [
         "At home: he cleared 3+ in 5/5 (100%).",
         "In his other matches only 3/5 (60%) — the situation is what makes this line.",
-        "Tonight Sabah FK go in as favourite v a top half side, at home.",
+        "Tonight Sabah FK go in as underdog v a top half side, at home.",
         "P shrunk for the small sample: (5+1)/(5+2) = 86%. Situational — unproven, tracked."
        ],
        "conf": 3,
@@ -2582,7 +2608,7 @@
        "reasons": [
         "At home: he cleared 1+ in 5/5 (100%).",
         "In his other matches only 3/5 (60%) — the situation is what makes this line.",
-        "Tonight Sabah FK go in as favourite v a top half side, at home.",
+        "Tonight Sabah FK go in as underdog v a top half side, at home.",
         "P shrunk for the small sample: (5+1)/(5+2) = 86%. Situational — unproven, tracked."
        ],
        "conf": 3,
@@ -2659,10 +2685,36 @@
      "lon": 29.036977,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: Fenerbahçe (Trendyol Süper Lig -1.67, domestic GD +1.65/game) rate -1.00; SK Slavia Praha (Czech First League -1.70, domestic GD +1.65/game) rate -1.03. Expected goal difference +0.50 for Fenerbahçe incl. home advantage → Fenerbahçe favourite. Previous meetings (3): 2024-11 Slavia Praha 1-2 Fenerbahçe; 2022-02 Slavia Praha 3-2 Fenerbahçe; 2022-02 Fenerbahçe 2-3 Slavia Praha.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 30 shots projected",
       "H2H last 3: 4.3 goals/game, over 2.5 3/3, BTTS 3/3"
      ],
+     "cross": {
+      "home": {
+       "S": -1.0000822857142857,
+       "league": "Trendyol Süper Lig",
+       "lr": -1.672,
+       "known": true,
+       "gd": 2.0,
+       "prevgd": 1.176,
+       "m": 8,
+       "dgd": 1.65
+      },
+      "away": {
+       "S": -1.0260479999999998,
+       "league": "Czech First League",
+       "lr": -1.698,
+       "known": true,
+       "gd": 1.82,
+       "prevgd": 1.333,
+       "m": 11,
+       "dgd": 1.65
+      },
+      "egd": 0.5,
+      "fav": "Fenerbahçe",
+      "text": "Cross-league: Fenerbahçe (Trendyol Süper Lig -1.67, domestic GD +1.65/game) rate -1.00; SK Slavia Praha (Czech First League -1.70, domestic GD +1.65/game) rate -1.03. Expected goal difference +0.50 for Fenerbahçe incl. home advantage → Fenerbahçe favourite. Previous meetings (3): 2024-11 Slavia Praha 1-2 Fenerbahçe; 2022-02 Slavia Praha 3-2 Fenerbahçe; 2022-02 Fenerbahçe 2-3 Slavia Praha."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -2768,13 +2820,13 @@
      },
      "tonight": {
       "home": {
-       "status": "even",
+       "status": "favourite",
        "opp": "bottom half",
        "ppg": 2.0,
        "band": "top 6"
       },
       "away": {
-       "status": "even",
+       "status": "underdog",
        "opp": "bottom half",
        "ppg": 2.45,
        "band": "top 6"
@@ -4774,12 +4826,38 @@
        "reasons": [
         "V bottom half sides: they cleared 15+ in 8/8 (100%).",
         "In their other matches only 1/4 (25%) — the situation is what makes this line.",
-        "Tonight SK Slavia Praha go in as an even match-up v a bottom half side, away.",
+        "Tonight SK Slavia Praha go in as underdog v a bottom half side, away.",
         "P shrunk for the small sample: (8+1)/(8+2) = 90%. Situational — unproven, tracked."
        ],
        "conf": 3,
        "situational": true,
        "id": "2026-10-20-16938965-sit-team-SK Slavia Praha-shots15"
+      },
+      {
+       "subject": "Mason Greenwood",
+       "team": "Fenerbahçe",
+       "kind": "player",
+       "market": "shots",
+       "line": 3,
+       "side": "home",
+       "label": "Mason Greenwood — 3+ shots",
+       "P": 0.889,
+       "fair": 1.12,
+       "cond": "as favourite",
+       "k": 7,
+       "n": 7,
+       "ko": 3,
+       "no": 5,
+       "pid": 942116,
+       "reasons": [
+        "As favourite: he cleared 3+ in 7/7 (100%).",
+        "In his other matches only 3/5 (60%) — the situation is what makes this line.",
+        "Tonight Fenerbahçe go in as favourite v a bottom half side, at home.",
+        "P shrunk for the small sample: (7+1)/(7+2) = 89%. Situational — unproven, tracked."
+       ],
+       "conf": 3,
+       "situational": true,
+       "id": "2026-10-20-16938965-sit-player-942116-shots3"
       },
       {
        "subject": "Ederson",
@@ -4800,7 +4878,7 @@
        "reasons": [
         "At home: he cleared 2+ in 6/6 (100%).",
         "In his other matches only 3/5 (60%) — the situation is what makes this line.",
-        "Tonight Fenerbahçe go in as an even match-up v a bottom half side, at home.",
+        "Tonight Fenerbahçe go in as favourite v a bottom half side, at home.",
         "P shrunk for the small sample: (6+1)/(6+2) = 88%. Situational — unproven, tracked."
        ],
        "conf": 3,
@@ -4826,7 +4904,7 @@
        "reasons": [
         "Away from home: he cleared 1+ in 5/5 (100%).",
         "In his other matches only 3/5 (60%) — the situation is what makes this line.",
-        "Tonight SK Slavia Praha go in as an even match-up v a bottom half side, away.",
+        "Tonight SK Slavia Praha go in as underdog v a bottom half side, away.",
         "P shrunk for the small sample: (5+1)/(5+2) = 86%. Situational — unproven, tracked."
        ],
        "conf": 3,
@@ -4917,10 +4995,36 @@
      "lon": 2.253069,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: Paris Saint-Germain (Ligue 1 -0.80, domestic GD +1.00/game) rate -0.40; FC Barcelona (LaLiga -0.58, domestic GD +2.62/game) rate +0.49. Expected goal difference -0.41 for Paris Saint-Germain incl. home advantage → FC Barcelona favourite. Previous meetings (6): 2025-10 Barcelona 1-2 PSG; 2024-04 Barcelona 1-4 PSG; 2024-04 PSG 2-3 Barcelona; 2021-03 PSG 1-1 Barcelona.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 30 shots projected",
       "H2H last 6: 4.5 goals/game, over 2.5 5/6, BTTS 6/6"
      ],
+     "cross": {
+      "home": {
+       "S": -0.3967575384615385,
+       "league": "Ligue 1",
+       "lr": -0.803,
+       "known": true,
+       "gd": 0.71,
+       "prevgd": 1.324,
+       "m": 7,
+       "dgd": 1.0
+      },
+      "away": {
+       "S": 0.49344960000000004,
+       "league": "LaLiga",
+       "lr": -0.576,
+       "known": true,
+       "gd": 3.33,
+       "prevgd": 1.553,
+       "m": 9,
+       "dgd": 2.62
+      },
+      "egd": -0.41,
+      "fav": "FC Barcelona",
+      "text": "Cross-league: Paris Saint-Germain (Ligue 1 -0.80, domestic GD +1.00/game) rate -0.40; FC Barcelona (LaLiga -0.58, domestic GD +2.62/game) rate +0.49. Expected goal difference -0.41 for Paris Saint-Germain incl. home advantage → FC Barcelona favourite. Previous meetings (6): 2025-10 Barcelona 1-2 PSG; 2024-04 Barcelona 1-4 PSG; 2024-04 PSG 2-3 Barcelona; 2021-03 PSG 1-1 Barcelona."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -7358,9 +7462,35 @@
      "lon": -2.200252,
      "type": "Even contest",
      "why": [
+      "Cross-league: Manchester City (Premier League +0.00, domestic GD +1.43/game) rate +0.58; AEK Athens (Stoiximan Super League -1.53, domestic GD +1.66/game) rate -0.85. Expected goal difference +1.91 for Manchester City incl. home advantage → Manchester City favourite. No previous meetings.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced shots (49–51)"
      ],
+     "cross": {
+      "home": {
+       "S": 0.5846953846153846,
+       "league": "Premier League",
+       "lr": 0.0,
+       "known": true,
+       "gd": 1.71,
+       "prevgd": 1.105,
+       "m": 7,
+       "dgd": 1.43
+      },
+      "away": {
+       "S": -0.8491759999999999,
+       "league": "Stoiximan Super League",
+       "lr": -1.527,
+       "known": true,
+       "gd": 2.17,
+       "prevgd": 1.156,
+       "m": 6,
+       "dgd": 1.66
+      },
+      "egd": 1.91,
+      "fav": "Manchester City",
+      "text": "Cross-league: Manchester City (Premier League +0.00, domestic GD +1.43/game) rate +0.58; AEK Athens (Stoiximan Super League -1.53, domestic GD +1.66/game) rate -0.85. Expected goal difference +1.91 for Manchester City incl. home advantage → Manchester City favourite. No previous meetings."
+     },
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -8662,10 +8792,36 @@
      "lon": -2.960931,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: Liverpool FC (Premier League +0.00, domestic GD +0.20/game) rate +0.08; Villarreal (LaLiga -0.58, domestic GD +0.27/game) rate -0.46. Expected goal difference +1.02 for Liverpool FC incl. home advantage → Liverpool FC favourite. Previous meetings (4): 2022-05 Villarreal 2-3 Liverpool; 2022-04 Liverpool 2-0 Villarreal; 2016-05 Liverpool 3-0 Villarreal; 2016-04 Villarreal 1-0 Liverpool.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 28 shots projected",
       "H2H last 4: 2.8 goals/game, over 2.5 2/4, BTTS 1/4"
      ],
+     "cross": {
+      "home": {
+       "S": 0.08090953846153845,
+       "league": "Premier League",
+       "lr": 0.0,
+       "known": true,
+       "gd": 0.14,
+       "prevgd": 0.263,
+       "m": 7,
+       "dgd": 0.2
+      },
+      "away": {
+       "S": -0.4643712,
+       "league": "LaLiga",
+       "lr": -0.576,
+       "known": true,
+       "gd": 0.0,
+       "prevgd": 0.684,
+       "m": 9,
+       "dgd": 0.27
+      },
+      "egd": 1.02,
+      "fav": "Liverpool FC",
+      "text": "Cross-league: Liverpool FC (Premier League +0.00, domestic GD +0.20/game) rate +0.08; Villarreal (LaLiga -0.58, domestic GD +0.27/game) rate -0.46. Expected goal difference +1.02 for Liverpool FC incl. home advantage → Liverpool FC favourite. Previous meetings (4): 2022-05 Villarreal 2-3 Liverpool; 2022-04 Liverpool 2-0 Villarreal; 2016-05 Liverpool 3-0 Villarreal; 2016-04 Villarreal 1-0 Liverpool."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -10543,9 +10699,35 @@
      "lon": 9.232086,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: VfB Stuttgart (Bundesliga -0.76, domestic GD +0.16/game) rate -0.69; Atlético Madrid (LaLiga -0.58, domestic GD +0.92/game) rate -0.20. Expected goal difference -0.02 for VfB Stuttgart incl. home advantage → even match-up. Previous meetings (1): 2018-08 Stuttgart 1-1 Atlético Madrid.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 29 shots projected"
      ],
+     "cross": {
+      "home": {
+       "S": -0.694012,
+       "league": "Bundesliga",
+       "lr": -0.758,
+       "known": true,
+       "gd": -0.33,
+       "prevgd": 0.647,
+       "m": 6,
+       "dgd": 0.16
+      },
+      "away": {
+       "S": -0.1994432,
+       "league": "LaLiga",
+       "lr": -0.576,
+       "known": true,
+       "gd": 1.22,
+       "prevgd": 0.474,
+       "m": 9,
+       "dgd": 0.92
+      },
+      "egd": -0.02,
+      "fav": null,
+      "text": "Cross-league: VfB Stuttgart (Bundesliga -0.76, domestic GD +0.16/game) rate -0.69; Atlético Madrid (LaLiga -0.58, domestic GD +0.92/game) rate -0.20. Expected goal difference -0.02 for VfB Stuttgart incl. home advantage → even match-up. Previous meetings (1): 2018-08 Stuttgart 1-1 Atlético Madrid."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -10639,13 +10821,13 @@
      },
      "tonight": {
       "home": {
-       "status": "underdog",
+       "status": "even",
        "opp": "top half",
        "ppg": 1.0,
        "band": "top 6"
       },
       "away": {
-       "status": "favourite",
+       "status": "even",
        "opp": "top half",
        "ppg": 2.44,
        "band": "outside the top 6"
@@ -12996,9 +13178,35 @@
      "lon": 14.192889,
      "type": "Bodø/Glimt on top",
      "why": [
+      "Cross-league: SSC Napoli (Serie A -0.77, domestic GD +0.50/game) rate -0.56; Bodø/Glimt (Eliteserien -1.48, domestic GD +1.70/game) rate -0.78. Expected goal difference +0.70 for SSC Napoli incl. home advantage → SSC Napoli favourite. No previous meetings.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "Bodø/Glimt projected 56% of the shots"
      ],
+     "cross": {
+      "home": {
+       "S": -0.5618160000000001,
+       "league": "Serie A",
+       "lr": -0.765,
+       "known": true,
+       "gd": 0.43,
+       "prevgd": 0.579,
+       "m": 7,
+       "dgd": 0.5
+      },
+      "away": {
+       "S": -0.784993103448276,
+       "league": "Eliteserien",
+       "lr": -1.48,
+       "known": true,
+       "gd": 1.65,
+       "prevgd": 1.9,
+       "m": 23,
+       "dgd": 1.7
+      },
+      "egd": 0.7,
+      "fav": "SSC Napoli",
+      "text": "Cross-league: SSC Napoli (Serie A -0.77, domestic GD +0.50/game) rate -0.56; Bodø/Glimt (Eliteserien -1.48, domestic GD +1.70/game) rate -0.78. Expected goal difference +0.70 for SSC Napoli incl. home advantage → SSC Napoli favourite. No previous meetings."
+     },
      "markets": [
       "Bodø/Glimt shots / SOT",
       "SSC Napoli keeper saves",
@@ -13118,13 +13326,13 @@
      },
      "tonight": {
       "home": {
-       "status": "underdog",
+       "status": "favourite",
        "opp": "bottom half",
        "ppg": 1.43,
        "band": "top 6"
       },
       "away": {
-       "status": "favourite",
+       "status": "underdog",
        "opp": "bottom half",
        "ppg": 2.43,
        "band": "outside the top 6"
@@ -15426,58 +15634,6 @@
      ],
      "edges": [
       {
-       "subject": "Sondre Auklend",
-       "team": "Bodø/Glimt",
-       "kind": "player",
-       "market": "tackles",
-       "line": 3,
-       "side": "away",
-       "label": "Sondre Auklend — 3+ tackles",
-       "P": 0.889,
-       "fair": 1.12,
-       "cond": "as favourite",
-       "k": 7,
-       "n": 7,
-       "ko": 0,
-       "no": 4,
-       "pid": 1029163,
-       "reasons": [
-        "As favourite: he cleared 3+ in 7/7 (100%).",
-        "In his other matches only 0/4 (0%) — the situation is what makes this line.",
-        "Tonight Bodø/Glimt go in as favourite v a bottom half side, away.",
-        "P shrunk for the small sample: (7+1)/(7+2) = 89%. Situational — unproven, tracked."
-       ],
-       "conf": 3,
-       "situational": true,
-       "id": "2026-10-20-16938987-sit-player-1029163-tackles3"
-      },
-      {
-       "subject": "Bodø/Glimt",
-       "team": "Bodø/Glimt",
-       "kind": "team",
-       "market": "shots",
-       "line": 11,
-       "side": "away",
-       "label": "Bodø/Glimt 11+ shots",
-       "P": 0.889,
-       "fair": 1.12,
-       "cond": "as favourite",
-       "k": 7,
-       "n": 7,
-       "ko": 2,
-       "no": 4,
-       "pid": null,
-       "reasons": [
-        "As favourite: they cleared 11+ in 7/7 (100%).",
-        "In their other matches only 2/4 (50%) — the situation is what makes this line.",
-        "Tonight Bodø/Glimt go in as favourite v a bottom half side, away.",
-        "P shrunk for the small sample: (7+1)/(7+2) = 89%. Situational — unproven, tracked."
-       ],
-       "conf": 3,
-       "situational": true,
-       "id": "2026-10-20-16938987-sit-team-Bodø/Glimt-shots11"
-      },
-      {
        "subject": "SSC Napoli",
        "team": "SSC Napoli",
        "kind": "team",
@@ -15487,16 +15643,16 @@
        "label": "SSC Napoli 13+ shots",
        "P": 0.875,
        "fair": 1.14,
-       "cond": "v bottom half sides",
+       "cond": "as favourite v bottom half sides",
        "k": 6,
        "n": 6,
        "ko": 3,
        "no": 7,
        "pid": null,
        "reasons": [
-        "V bottom half sides: they cleared 13+ in 6/6 (100%).",
+        "As favourite v bottom half sides: they cleared 13+ in 6/6 (100%).",
         "In their other matches only 3/7 (43%) — the situation is what makes this line.",
-        "Tonight SSC Napoli go in as underdog v a bottom half side, at home.",
+        "Tonight SSC Napoli go in as favourite v a bottom half side, at home.",
         "P shrunk for the small sample: (6+1)/(6+2) = 88%. Situational — unproven, tracked."
        ],
        "conf": 3,
@@ -15587,10 +15743,36 @@
      "lon": -8.583749,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: FC Porto (Liga Portugal Betclic -1.07, domestic GD +1.75/game) rate -0.36; PSV Eindhoven (VriendenLoterij Eredivisie -1.54, domestic GD +1.66/game) rate -0.87. Expected goal difference +0.98 for FC Porto incl. home advantage → FC Porto favourite. Previous meetings (5): 2016-07 PSV 3-0 Porto; 1993-04 PSV 0-1 Porto; 1992-11 Porto 2-2 PSV; 1988-11 Porto 2-0 PSV.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 28 shots projected",
       "H2H last 5: 3 goals/game, over 2.5 3/5, BTTS 1/5"
      ],
+     "cross": {
+      "home": {
+       "S": -0.361816,
+       "league": "Liga Portugal Betclic",
+       "lr": -1.075,
+       "known": true,
+       "gd": 2.0,
+       "prevgd": 1.412,
+       "m": 8,
+       "dgd": 1.75
+      },
+      "away": {
+       "S": -0.8682095999999999,
+       "league": "VriendenLoterij Eredivisie",
+       "lr": -1.545,
+       "known": true,
+       "gd": 1.67,
+       "prevgd": 1.647,
+       "m": 9,
+       "dgd": 1.66
+      },
+      "egd": 0.98,
+      "fav": "FC Porto",
+      "text": "Cross-league: FC Porto (Liga Portugal Betclic -1.07, domestic GD +1.75/game) rate -0.36; PSV Eindhoven (VriendenLoterij Eredivisie -1.54, domestic GD +1.66/game) rate -0.87. Expected goal difference +0.98 for FC Porto incl. home advantage → FC Porto favourite. Previous meetings (5): 2016-07 PSV 3-0 Porto; 1993-04 PSV 0-1 Porto; 1992-11 Porto 2-2 PSV; 1988-11 Porto 2-0 PSV."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -18447,9 +18629,35 @@
      "lon": 12.454771,
      "type": "Open, end-to-end",
      "why": [
+      "Cross-league: AS Roma (Serie A -0.77, domestic GD +1.34/game) rate -0.22; ŠK Slovan Bratislava (Niké Liga -2.51, domestic GD +1.16/game) rate -2.03. Expected goal difference +2.29 for AS Roma incl. home advantage → AS Roma favourite. Previous meetings (2): 2011-08 Roma 1-1 Slovan; 2011-08 Slovan 1-0 Roma.",
       "Champions League: each club's numbers come mostly from its own league, and league strength is not adjusted yet. Treat the match type and the team-volume lines with extra care; low player lines are less affected.",
       "balanced, 28 shots projected"
      ],
+     "cross": {
+      "home": {
+       "S": -0.21821723076923083,
+       "league": "Serie A",
+       "lr": -0.765,
+       "known": true,
+       "gd": 1.86,
+       "prevgd": 0.737,
+       "m": 7,
+       "dgd": 1.34
+      },
+      "away": {
+       "S": -2.034731,
+       "league": "Niké Liga",
+       "lr": -2.51,
+       "known": true,
+       "gd": 1.4,
+       "prevgd": 0.773,
+       "m": 10,
+       "dgd": 1.16
+      },
+      "egd": 2.29,
+      "fav": "AS Roma",
+      "text": "Cross-league: AS Roma (Serie A -0.77, domestic GD +1.34/game) rate -0.22; ŠK Slovan Bratislava (Niké Liga -2.51, domestic GD +1.16/game) rate -2.03. Expected goal difference +2.29 for AS Roma incl. home advantage → AS Roma favourite. Previous meetings (2): 2011-08 Roma 1-1 Slovan; 2011-08 Slovan 1-0 Roma."
+     },
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -21360,6 +21568,7 @@
       "head-to-head averages 1.3 goals",
       "H2H last 4: 1.3 goals/game, over 2.5 1/4, BTTS 1/4"
      ],
+     "cross": null,
      "markets": [
       "tackles",
       "unders only with strong records (goals are barely forecastable)"
@@ -24605,6 +24814,7 @@
      "why": [
       "Leicester City projected 61% of the shots"
      ],
+     "cross": null,
      "markets": [
       "Leicester City to score / shots / SOT",
       "Bromley keeper saves",
@@ -27123,6 +27333,7 @@
       "balanced, 29 shots projected",
       "H2H last 6: 2.7 goals/game, over 2.5 4/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -28972,6 +29183,7 @@
       "balanced shots (45–55)",
       "H2H last 6: 2.5 goals/game, over 2.5 4/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -31586,6 +31798,7 @@
       "balanced, 27 shots projected",
       "H2H last 6: 3.5 goals/game, over 2.5 4/6, BTTS 5/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -34645,6 +34858,7 @@
       "balanced shots (49–51)",
       "H2H last 6: 2.7 goals/game, over 2.5 3/6, BTTS 4/6"
      ],
+     "cross": null,
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -37584,6 +37798,7 @@
       "balanced shots (55–45)",
       "H2H last 6: 3 goals/game, over 2.5 3/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -40541,6 +40756,7 @@
       "balanced shots (47–53)",
       "H2H last 6: 2.5 goals/game, over 2.5 3/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -43097,6 +43313,7 @@
       "Stockport County projected 57% of the shots",
       "H2H last 6: 4.5 goals/game, over 2.5 3/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "Stockport County shots / SOT",
       "Doncaster Rovers keeper saves",
@@ -46193,6 +46410,7 @@
       "Mansfield Town projected 55% of the shots",
       "H2H last 6: 3 goals/game, over 2.5 4/6, BTTS 4/6"
      ],
+     "cross": null,
      "markets": [
       "Mansfield Town shots / SOT",
       "AFC Wimbledon keeper saves",
@@ -49018,6 +49236,7 @@
       "balanced shots (51–49)",
       "H2H last 6: 2.5 goals/game, over 2.5 3/6, BTTS 5/6"
      ],
+     "cross": null,
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -51947,6 +52166,7 @@
       "balanced, 31 shots projected",
       "H2H last 6: 2.2 goals/game, over 2.5 2/6, BTTS 1/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -54134,6 +54354,7 @@
       "balanced, 27 shots projected",
       "H2H last 4: 1.8 goals/game, over 2.5 1/4, BTTS 2/4"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -56802,6 +57023,7 @@
       "Grimsby Town projected 60% of the shots",
       "H2H last 6: 2.2 goals/game, over 2.5 1/6, BTTS 1/6"
      ],
+     "cross": null,
      "markets": [
       "Grimsby Town to score / shots / SOT",
       "Rochdale keeper saves",
@@ -60287,6 +60509,7 @@
       "balanced, 28 shots projected",
       "H2H last 6: 3.5 goals/game, over 2.5 4/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -63258,6 +63481,7 @@
       "Barnet projected 58% of the shots",
       "H2H last 6: 2.7 goals/game, over 2.5 3/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "Barnet shots / SOT",
       "Swindon Town keeper saves",
@@ -66300,6 +66524,7 @@
       "balanced shots (53–47)",
       "H2H last 6: 2.3 goals/game, over 2.5 3/6, BTTS 4/6"
      ],
+     "cross": null,
      "markets": [
       "both keepers saves",
       "tackles on both sides"
@@ -69302,6 +69527,7 @@
       "balanced, 28 shots projected",
       "H2H last 6: 3 goals/game, over 2.5 4/6, BTTS 5/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -72170,6 +72396,7 @@
      "why": [
       "both in the relegation fight"
      ],
+     "cross": null,
      "markets": [
       "tackles",
       "unders only with strong records (goals are barely forecastable)"
@@ -75544,6 +75771,7 @@
       "Chesterfield projected 57% of the shots",
       "H2H last 6: 2.7 goals/game, over 2.5 2/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "Chesterfield shots / SOT",
       "Colchester United keeper saves",
@@ -78691,6 +78919,7 @@
       "Fleetwood Town projected 60% of the shots",
       "H2H last 6: 2.5 goals/game, over 2.5 2/6, BTTS 2/6"
      ],
+     "cross": null,
      "markets": [
       "Fleetwood Town shots / SOT",
       "Cheltenham Town keeper saves",
@@ -81726,6 +81955,7 @@
       "both in the relegation fight",
       "H2H last 6: 2.2 goals/game, over 2.5 2/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "tackles",
       "unders only with strong records (goals are barely forecastable)"
@@ -84476,6 +84706,7 @@
       "both in the relegation fight",
       "H2H last 6: 2.7 goals/game, over 2.5 2/6, BTTS 4/6"
      ],
+     "cross": null,
      "markets": [
       "tackles",
       "unders only with strong records (goals are barely forecastable)"
@@ -87423,6 +87654,7 @@
       "Port Vale projected 56% of the shots",
       "H2H last 6: 1.8 goals/game, over 2.5 1/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "Port Vale shots / SOT",
       "Gillingham keeper saves",
@@ -89782,6 +90014,7 @@
       "CD Guadalajara projected 56% of the shots",
       "H2H last 6: 3.3 goals/game, over 2.5 4/6, BTTS 4/6"
      ],
+     "cross": null,
      "markets": [
       "CD Guadalajara shots / SOT",
       "Club Necaxa keeper saves",
@@ -92340,6 +92573,7 @@
       "Atlante FC projected 58% of the shots",
       "H2H last 6: 2.7 goals/game, over 2.5 3/6, BTTS 2/6"
      ],
+     "cross": null,
      "markets": [
       "Atlante FC shots / SOT",
       "FC Juárez keeper saves",
@@ -95297,6 +95531,7 @@
       "balanced, 31 shots projected",
       "H2H last 6: 3.7 goals/game, over 2.5 5/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -98023,6 +98258,7 @@
       "balanced, 31 shots projected",
       "H2H last 6: 2 goals/game, over 2.5 3/6, BTTS 3/6"
      ],
+     "cross": null,
      "markets": [
       "shots / SOT on both sides",
       "both keepers saves"
@@ -101402,5 +101638,321 @@
    "fair": 1.04,
    "conf": 5
   }
- ]
+ ],
+ "leagueRatings": {
+  "built": "2026-10-20",
+  "matches": 2347,
+  "home_adv": 0.478,
+  "slope": 0.408,
+  "check": {
+   "train": 1630,
+   "test": 717,
+   "rmse_with_leagues": 1.787,
+   "rmse_domestic_gd_only": 2.007,
+   "rmse_home_adv_only": 2.007,
+   "winner_right_with_leagues": 0.558,
+   "winner_right_domestic_only": 0.488
+  },
+  "volume": {
+   "sh": {
+    "n": 898,
+    "c": -0.066,
+    "beta": 0.289,
+    "check": {
+     "test": 264,
+     "rmse_adjusted": 5.73,
+     "rmse_unadjusted": 6.86
+    },
+    "per_goal": 1.335
+   },
+   "sot": {
+    "n": 896,
+    "c": -0.022,
+    "beta": 0.336,
+    "check": {
+     "test": 264,
+     "rmse_adjusted": 2.94,
+     "rmse_unadjusted": 3.3
+    },
+    "per_goal": 1.399
+   }
+  },
+  "leagues": [
+   {
+    "name": "Premier League",
+    "rating": 0.0,
+    "cup_matches": 218
+   },
+   {
+    "name": "LaLiga",
+    "rating": -0.576,
+    "cup_matches": 189
+   },
+   {
+    "name": "Bundesliga",
+    "rating": -0.758,
+    "cup_matches": 168
+   },
+   {
+    "name": "Serie A",
+    "rating": -0.765,
+    "cup_matches": 179
+   },
+   {
+    "name": "Ligue 1",
+    "rating": -0.803,
+    "cup_matches": 164
+   },
+   {
+    "name": "Liga Portugal Betclic",
+    "rating": -1.075,
+    "cup_matches": 143
+   },
+   {
+    "name": "Pro League",
+    "rating": -1.387,
+    "cup_matches": 129
+   },
+   {
+    "name": "Danish Superliga",
+    "rating": -1.389,
+    "cup_matches": 104
+   },
+   {
+    "name": "Eliteserien",
+    "rating": -1.48,
+    "cup_matches": 119
+   },
+   {
+    "name": "Ekstraklasa",
+    "rating": -1.524,
+    "cup_matches": 123
+   },
+   {
+    "name": "Stoiximan Super League",
+    "rating": -1.527,
+    "cup_matches": 131
+   },
+   {
+    "name": "VriendenLoterij Eredivisie",
+    "rating": -1.545,
+    "cup_matches": 156
+   },
+   {
+    "name": "Trendyol Süper Lig",
+    "rating": -1.672,
+    "cup_matches": 128
+   },
+   {
+    "name": "Czech First League",
+    "rating": -1.698,
+    "cup_matches": 135
+   },
+   {
+    "name": "Allsvenskan",
+    "rating": -1.796,
+    "cup_matches": 107
+   },
+   {
+    "name": "Swiss Super League",
+    "rating": -1.84,
+    "cup_matches": 115
+   },
+   {
+    "name": "OTP Bank Liga",
+    "rating": -1.843,
+    "cup_matches": 80
+   },
+   {
+    "name": "Liga Portugal 2",
+    "rating": -2.008,
+    "cup_matches": 2
+   },
+   {
+    "name": "Scottish Premiership",
+    "rating": -2.049,
+    "cup_matches": 112
+   },
+   {
+    "name": "HNL",
+    "rating": -2.05,
+    "cup_matches": 79
+   },
+   {
+    "name": "Cyprus League by Stoiximan",
+    "rating": -2.069,
+    "cup_matches": 110
+   },
+   {
+    "name": "Austrian Bundesliga",
+    "rating": -2.073,
+    "cup_matches": 111
+   },
+   {
+    "name": "SuperLiga României",
+    "rating": -2.08,
+    "cup_matches": 85
+   },
+   {
+    "name": "Ukrainian Premier League",
+    "rating": -2.088,
+    "cup_matches": 78
+   },
+   {
+    "name": "Israeli Premier League",
+    "rating": -2.333,
+    "cup_matches": 72
+   },
+   {
+    "name": "Misli Premier League",
+    "rating": -2.409,
+    "cup_matches": 78
+   },
+   {
+    "name": "PrvaLiga",
+    "rating": -2.43,
+    "cup_matches": 93
+   },
+   {
+    "name": "Mozzart Bet Superliga",
+    "rating": -2.444,
+    "cup_matches": 65
+   },
+   {
+    "name": "Parva Liga",
+    "rating": -2.459,
+    "cup_matches": 87
+   },
+   {
+    "name": "Niké Liga",
+    "rating": -2.51,
+    "cup_matches": 67
+   },
+   {
+    "name": " Premier Division",
+    "rating": -2.613,
+    "cup_matches": 80
+   },
+   {
+    "name": "Abissnet Superiore",
+    "rating": -2.644,
+    "cup_matches": 51
+   },
+   {
+    "name": "Besta deild karla",
+    "rating": -2.712,
+    "cup_matches": 68
+   },
+   {
+    "name": "Veikkausliiga",
+    "rating": -2.732,
+    "cup_matches": 75
+   },
+   {
+    "name": "WWIN Liga BiH",
+    "rating": -2.889,
+    "cup_matches": 69
+   },
+   {
+    "name": "Armenian Premier League",
+    "rating": -2.898,
+    "cup_matches": 75
+   },
+   {
+    "name": "Vysshaya Liga",
+    "rating": -2.953,
+    "cup_matches": 52
+   },
+   {
+    "name": "Virsliga",
+    "rating": -2.965,
+    "cup_matches": 65
+   },
+   {
+    "name": "Kazakhstan Premier League",
+    "rating": -2.965,
+    "cup_matches": 64
+   },
+   {
+    "name": "AlbiMall Superliga",
+    "rating": -3.009,
+    "cup_matches": 58
+   },
+   {
+    "name": "1. MFL",
+    "rating": -3.033,
+    "cup_matches": 42
+   },
+   {
+    "name": "Iceland 1. deild",
+    "rating": -3.104,
+    "cup_matches": 4
+   },
+   {
+    "name": "Montenegrin First League",
+    "rating": -3.29,
+    "cup_matches": 38
+   },
+   {
+    "name": "Faroe Islands Premier League",
+    "rating": -3.292,
+    "cup_matches": 48
+   },
+   {
+    "name": "TOPLYGA",
+    "rating": -3.298,
+    "cup_matches": 49
+   },
+   {
+    "name": "Primera Divisió",
+    "rating": -3.379,
+    "cup_matches": 33
+   },
+   {
+    "name": "Erovnuli Liga",
+    "rating": -3.389,
+    "cup_matches": 45
+   },
+   {
+    "name": "Premium Liiga",
+    "rating": -3.413,
+    "cup_matches": 50
+   },
+   {
+    "name": "Moldovan Super Liga",
+    "rating": -3.464,
+    "cup_matches": 58
+   },
+   {
+    "name": "NIFL Premiership",
+    "rating": -3.701,
+    "cup_matches": 48
+   },
+   {
+    "name": "VBET Malta Premier",
+    "rating": -3.721,
+    "cup_matches": 44
+   },
+   {
+    "name": "Division Nationale",
+    "rating": -3.896,
+    "cup_matches": 38
+   },
+   {
+    "name": "Cymru Premier",
+    "rating": -3.954,
+    "cup_matches": 38
+   },
+   {
+    "name": "Gibraltar Football League",
+    "rating": -4.107,
+    "cup_matches": 47
+   },
+   {
+    "name": "Campionato Sammarinese",
+    "rating": -4.64,
+    "cup_matches": 28
+   }
+  ]
+ }
 }
