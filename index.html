@@ -233,7 +233,7 @@ table.avgs td:first-child { color: var(--muted); }
 .sbbar .pct, .sbbar .fair { color: var(--bg); } .sbbar .open { font-weight: 700; color: var(--accent); } .sbbar .warnc { color: var(--accent); font-size: 12px; }
 body.has-sb main { padding-bottom: 80px; }
 .ladder { display: grid; gap: 6px; } table.lad td { padding-block: 3px; } table.lad tr.main td { background: var(--accent-soft); font-weight: 700; }
-table.lad td.wrap { white-space: normal; min-width: 150px; max-width: 230px; } table.lad small { color: var(--muted); display: block; font-size: 11px; line-height: 1.3; margin-top: 2px; }
+table.lad .addl { padding: 1px 9px; } table.lad td.wrap { white-space: normal; min-width: 130px; max-width: 170px; } table.lad th, table.lad td { padding-inline: 5px; } table.lad small { color: var(--muted); display: block; font-size: 11px; line-height: 1.3; margin-top: 2px; }
 .bleg { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 10px 12px; display: grid; gap: 6px; }
 .bleg.fail { border-color: var(--bad); }
 .bleg .fxl { font-size: 12px; color: var(--muted); }
@@ -742,19 +742,24 @@ table.lad td.wrap { white-space: normal; min-width: 150px; max-width: 230px; } t
   function ladderTable(p, g) {
     const box = $('div', 'ladder');
     box.append($('div', 'subh', 'Other lines: each one judged like a pick'));
+    const mainE = p.ladder.find(e => e.main) || p.ladder[0];
+    if (mainE.likeTxt) box.append($('div', 'tnote', 'Like this game = ' + mainE.likeTxt + '.'));
     const w = $('div', 'tbl-wrap'), t = $('table', 'lad'), h = $('tr');
-    ['Line', 'P', 'Fair', 'Conf', 'Record · model', 'Verdict', ''].forEach((x, i) => h.append($('th', i >= 1 && i <= 3 ? 'n' : null, x))); t.append(h);
+    ['', 'Line', 'P · fair', 'Conf', 'Like this game', 'All games · model', 'Verdict'].forEach((x, i) => h.append($('th', i >= 2 && i <= 4 ? 'n' : null, x))); t.append(h);
     p.ladder.forEach(e => {
       const tr = $('tr', e.main ? 'main' : ''); const v = $('td', 'wrap');
       v.append($('span', 'tag ' + (e.pass ? 'fits' : 'against'), e.main ? "system's line" : e.pass ? 'would pick' : 'would not pick'));
       if (!e.pass && e.fails.length) v.append($('small', null, e.fails.join('; ')));
       const rec = `${e.k}/${e.n}` + (e.k2 != null ? ` & ${e.k2}/${e.n2}` : '') + (e.model != null ? ` · ${Math.round(e.model * 100)}%` : '');
-      const add = $('td'); const b = $('button', 'chip', inSlip(p.id) && (SB.legs.find(l => l.id === p.id) || {}).line === e.line ? '✓ in slip' : '+ slip'); b.type = 'button';
+      const add = $('td'); const on_ = inSlip(p.id) && (SB.legs.find(l => l.id === p.id) || {}).line === e.line; const b = $('button', 'chip addl', on_ ? '✓' : '+'); b.type = 'button';
+      b.title = on_ ? 'In your slip' : 'Add this line to the slip builder'; b.setAttribute('aria-label', (on_ ? 'In slip: ' : 'Add to slip: ') + e.label); if (on_) b.setAttribute('aria-pressed', 'true');
       b.addEventListener('click', ev => { ev.stopPropagation(); sbAdd(p.id, e.line); box.replaceWith(ladderTable(p, g)); }); add.append(b);
       const cf = $('td', 'n'); cf.append(pips(e.conf));
-      tr.append($('td', null, e.label), $('td', 'n', pct(e.P)), $('td', 'n', fx(e.fair)), cf, $('td', 'num', rec), v, add); t.append(tr);
+      const lk = e.like && e.like[1] ? `${e.like[0]}/${e.like[1]}` : '—';
+      const lkc = $('td', 'n' + (e.like && e.like[1] >= 3 ? (e.like[0] / e.like[1] >= 0.8 ? ' good' : ' bad') : ''), lk);
+      tr.append(add, $('td', null, e.label), $('td', 'n', `${pct(e.P)} · ${fx(e.fair)}`), cf, lkc, $('td', 'num', rec), v); t.append(tr);
     });
-    w.append(t); box.append(w, $('div', 'tnote', 'Same checks as every pick: P = the lower of the record and the model, both sides 80%+ (players: his record 83%+, opponent side, like tonight). For players, the opponent side is measured at the system\'s line and scaled to the others.'));
+    w.append(t); box.append(w, $('div', 'tnote', 'Same checks as every pick: P = the lower of the record and the model, both sides 80%+ (players: his record 83%+, opponent side). Like this game must be 80%+ when there are 5+ such games (players: 3+); fewer are shown but not judged. For players, the opponent side is measured at the system\'s line and scaled to the others.'));
     return box;
   }
   const num_ = v => { const x = parseFloat(String(v).replace(',', '.')); return isFinite(x) && x > 1 ? x : null; };
@@ -783,7 +788,8 @@ table.lad td.wrap { white-space: normal; min-width: 150px; max-width: 230px; } t
       const meta = $('div', 'row'); meta.style.flexWrap = 'wrap'; meta.style.gap = '4px 12px';
       meta.append(pips(x.e.conf), $('span', 'pct', pct(x.e.P)), $('span', null, 'fair '), verdictTag(x.e));
       meta.children[2].append($('span', 'fair', fx(x.e.fair)));
-      if (x.e.k != null) meta.append($('span', 'tnote', `record ${x.e.k}/${x.e.n}` + (x.e.k2 != null ? ` & ${x.e.k2}/${x.e.n2}` : '')));
+      if (x.e.like && x.e.like[1]) meta.append($('span', 'tnote', `like this game ${x.e.like[0]}/${x.e.like[1]}`));
+      if (x.e.k != null) meta.append($('span', 'tnote', `all games ${x.e.k}/${x.e.n}` + (x.e.k2 != null ? ` & ${x.e.k2}/${x.e.n2}` : '')));
       c.append(top, st, meta);
       if (!x.e.pass && x.e.fails.length) c.append($('div', 'tnote failtxt', 'Fails: ' + x.e.fails.join('; ')));
       const od = $('label', 'oddsin'); od.append($('span', null, 'Bet365 odds (optional)'));
