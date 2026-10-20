@@ -224,6 +224,30 @@ table.games .rs { display: inline-flex; align-items: center; gap: 6px; }
 table.avgs td:first-child { color: var(--muted); }
 .linkbtn { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font-weight: 600; font-size: 13px; width: fit-content; }
 .tnote { font-size: 12px; color: var(--muted); }
+
+/* slip builder */
+.acts { display: flex; align-items: center; gap: 6px; margin-right: 10px; } .acts .tick { margin: 0; } .legrow .acts { margin: 0; }
+.tick.sbt[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+.sbbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 19; display: flex; align-items: center; gap: 12px;
+  background: var(--ink); color: var(--bg); border: 0; border-radius: 999px; padding: 10px 18px; box-shadow: var(--shadow); cursor: pointer; font-size: 14px; max-width: calc(100% - 32px); white-space: nowrap; }
+.sbbar .pct, .sbbar .fair { color: var(--bg); } .sbbar .open { font-weight: 700; color: var(--accent); } .sbbar .warnc { color: var(--accent); font-size: 12px; }
+body.has-sb main { padding-bottom: 80px; }
+.ladder { display: grid; gap: 6px; } table.lad td { padding-block: 3px; } table.lad tr.main td { background: var(--accent-soft); font-weight: 700; }
+table.lad td.wrap { white-space: normal; min-width: 150px; max-width: 230px; } table.lad small { color: var(--muted); display: block; font-size: 11px; line-height: 1.3; margin-top: 2px; }
+.bleg { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 10px 12px; display: grid; gap: 6px; }
+.bleg.fail { border-color: var(--bad); }
+.bleg .fxl { font-size: 12px; color: var(--muted); }
+.stepper { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.stepper .lbl { text-align: center; overflow-wrap: anywhere; }
+.chip:disabled { opacity: .4; cursor: default; }
+.chip.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); padding: 6px 16px; width: fit-content; }
+.failtxt { color: var(--bad); }
+.oddsin { display: grid; gap: 3px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.oddsin input { font: inherit; font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 140px; font-family: var(--f-mono); }
+.inrow { display: flex; flex-wrap: wrap; gap: 12px; }
+.cmpbox p { margin: 0; } .cmpbox p.good { color: var(--ok); font-weight: 600; } .cmpbox p.bad { color: var(--bad); font-weight: 600; }
+.warnnote { color: var(--warn); }
+@media (max-width: 560px) { .stepper { grid-template-columns: 1fr 1fr; } .stepper .lbl { grid-column: 1 / -1; grid-row: 1; } .sbbar { gap: 8px; padding: 9px 14px; font-size: 13px; } }
 @media (max-width: 560px) {
   .brand h1 { font-size: 22px; }
   .split { grid-template-columns: 110px 1fr 64px; }
@@ -250,6 +274,7 @@ table.avgs td:first-child { color: var(--muted); }
 <main class="wrap" id="main"><div class="load">Loading today's board…</div></main>
 
 <div class="scrim" id="scrim" hidden></div>
+<button type="button" class="sbbar" id="sbbar" hidden></button>
 <aside class="sheet" id="sheet" hidden aria-modal="true" role="dialog" aria-labelledby="sheet-title"></aside>
 
 <script>
@@ -378,7 +403,7 @@ table.avgs td:first-child { color: var(--muted); }
       const bx = $('div', 'pick'); const bt = $('button'); bt.type = 'button';
       const pm = $('span', 'pm'); pm.append(pips(m.conf), $('span', 'pct', pct(m.P))); const fr = $('span', null, 'fair '); fr.append($('span', 'fair', fx(m.fair))); pm.append(fr);
       const ps = $('span', 'ps'); ps.append($('span', null, `projected ${Math.round(m.share * 100)}% of the shots`), $('span', null, `own record ${m.own[0]}/${m.own[1]}`), $('span', null, `opponent out-shot ${m.opp[0]}/${m.opp[1]}`));
-      bt.append($('span', 'pl', m.label), pm, ps); bx.append(bt, tickBtn('bet', m.id)); if (isMine(m.id)) bx.classList.add('mine');
+      bt.append($('span', 'pl', m.label), pm, ps); bx.append(bt, acts(m.id, tickBtn('bet', m.id))); if (isMine(m.id)) bx.classList.add('mine');
       const rs = $('div', 'reason'); const u = $('ul'); m.reasons.forEach(r => u.append($('li', null, r))); rs.append(u); bx.append(rs);
       const tb = $('button', 'linkbtn', 'Show team data'); tb.type = 'button'; let tp = null;
       tb.addEventListener('click', () => { if (tp) { tp.remove(); tp = null; tb.textContent = 'Show team data'; return; }
@@ -545,8 +570,8 @@ table.avgs td:first-child { color: var(--muted); }
 
   /* ---------- My bets: Nathan ticks what he selected; synced to the private repo (logs/my-bets.json) ---------- */
   const REPO = 'NathanVuillemin/betting-system', MYPATH = 'logs/my-bets.json';
-  let MY = { updated: null, bets: {}, slips: {} }, MYOPS = [], MYSHA = null, MYSTATE = 'local', MYERR = '', myTimer = null;
-  try { const m = JSON.parse(localStorage.getItem('bbb-my') || 'null'); if (m && m.bets) MY = m; MYOPS = JSON.parse(localStorage.getItem('bbb-myops') || '[]'); } catch (e) {}
+  let MY = { updated: null, bets: {}, slips: {}, custom: {} }, MYOPS = [], MYSHA = null, MYSTATE = 'local', MYERR = '', myTimer = null;
+  try { const m = JSON.parse(localStorage.getItem('bbb-my') || 'null'); if (m && m.bets) { MY = m; MY.custom = MY.custom || {}; } MYOPS = JSON.parse(localStorage.getItem('bbb-myops') || '[]'); } catch (e) {}
   const tok = () => { try { return localStorage.getItem('bbb-gh') || ''; } catch (e) { return ''; } };
   const myLocal = () => { try { localStorage.setItem('bbb-my', JSON.stringify(MY)); localStorage.setItem('bbb-myops', JSON.stringify(MYOPS)); } catch (e) {} };
   const b64e = s => btoa(unescape(encodeURIComponent(s))), b64d = s => decodeURIComponent(escape(atob(s.replace(/\n/g, ''))));
@@ -564,14 +589,14 @@ table.avgs td:first-child { color: var(--muted); }
     const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${MYPATH}?t=${Date.now()}`, { headers: ghHead(), cache: 'no-store' });
     if (r.status === 404) { MYSHA = null; return { updated: null, bets: {}, slips: {} }; }
     if (!r.ok) throw new Error(r.status === 401 ? 'the access key was refused (401)' : r.status === 403 ? 'the access key has no permission for this repository (403)' : 'GitHub answered ' + r.status);
-    const j = await r.json(); MYSHA = j.sha; const d = JSON.parse(b64d(j.content)); d.bets = d.bets || {}; d.slips = d.slips || {}; return d;
+    const j = await r.json(); MYSHA = j.sha; const d = JSON.parse(b64d(j.content)); d.bets = d.bets || {}; d.slips = d.slips || {}; d.custom = d.custom || {}; return d;
   }
   async function mySync(retry) {
     if (!tok()) return;
     MYSTATE = 'syncing'; syncBadge();
     try {
       const remote = await myPull();
-      MYOPS.forEach(o => { const box = o.kind === 'slip' ? remote.slips : remote.bets; if (o.on) box[o.id] = o.at; else delete box[o.id]; });
+      MYOPS.forEach(o => { const box = o.kind === 'slip' ? remote.slips : o.kind === 'custom' ? remote.custom : remote.bets; if (o.on) box[o.id] = o.kind === 'custom' ? o.data : o.at; else delete box[o.id]; });
       if (MYOPS.length || MYSHA == null) {
         remote.updated = new Date().toISOString();
         const body = { message: `My bets: ${Object.keys(remote.bets).length} picks, ${Object.keys(remote.slips).length} slips`, content: b64e(JSON.stringify(remote, null, 1)) };
@@ -635,7 +660,7 @@ table.avgs td:first-child { color: var(--muted); }
       if (p.next && p.next.n) ps.append($('span', (p.next.k + 1) / (p.next.n + 2) >= 0.8 ? 'tag up' : null, `next ${p.next.line} ${p.next.k}/${p.next.n}`));
       if (p.history && p.history.step_up) ps.append($('span', 'tag up', 'step-up'));
     }
-    bt.append($('span', 'pl', p.label), pm, ps); w.append(bt, tickBtn('bet', p.id || p.label));
+    bt.append($('span', 'pl', p.label), pm, ps); w.append(bt, acts(p.id || p.label, tickBtn('bet', p.id || p.label)));
     if (isMine(p.id)) w.classList.add('mine');
     let body = null;
     bt.addEventListener('click', () => {
@@ -656,11 +681,179 @@ table.avgs td:first-child { color: var(--muted); }
         body.append(sp);
         body.append($('div', 'subh', 'Bold rows match tonight. Shot-share rows are hindsight: shown, never used to pick.'));
       }
+      if (p.ladder) body.append(ladderTable(p, g));
       body.append($('div', 'subh', 'Team data'), teamPanel([g.home, g.away], p.side ? g[p.side] : (p.team || g.home), g.eventId, D.date));
       w.append(body); bt.setAttribute('aria-expanded', 'true'); w.setAttribute('open-pick', '');
     });
     return w;
   }
+
+  /* ---------- slip builder (Nathan, 2026-10-20: "I take your bet and mix it up, safer or riskier … build my own slip with
+     my own Bet365 odds; calculate what you would have given it and whether you would have suggested it").
+     Every line comes from the pick's ladder (tools/situations.py): P, fair, confidence and the checks, exactly like a pick.
+     The slip lives in this browser until saved; saved slips go to My bets (logs/my-bets.json → custom) and are scored. ---------- */
+  let SB = { date: null, legs: [], odds: '', stake: '' };
+  try { const v = JSON.parse(localStorage.getItem('bbb-sb') || 'null'); if (v && Array.isArray(v.legs)) SB = v; } catch (e) {}
+  const sbSave = () => { try { localStorage.setItem('bbb-sb', JSON.stringify(SB)); } catch (e) {} sbBar(); };
+  function findAny(id) {
+    if (!D) return {};
+    for (const l of D.leagues) for (const g of l.games) {
+      const p = g.picks.find(x => x.id === id) || g.edges.find(x => x.id === id); if (p) return { g, p };
+      if (g.most && g.most.id === id) return { g, p: g.most };
+    }
+    return {};
+  }
+  const mainLine = p => p.ladder ? (p.ladder.find(x => x.main) || p.ladder[0]).line : null;
+  function legInfo(leg) {
+    const { g, p } = findAny(leg.id); if (!p) return null;
+    const L = p.ladder, i = L ? L.findIndex(x => x.line === leg.line) : -1;
+    const e = i >= 0 ? L[i] : { label: p.label, P: p.P, fair: p.fair, conf: p.conf || 1, pass: true, fails: [], main: true };
+    return { g, p, e, L, i };
+  }
+  const inSlip = id => SB.legs.some(l => l.id === id);
+  function sbAdd(id, line) {
+    const { p } = findAny(id); if (!p) return;
+    const ex = SB.legs.find(l => l.id === id);
+    if (ex && line == null) SB.legs = SB.legs.filter(l => l !== ex);
+    else if (ex) ex.line = line;
+    else SB.legs.push({ id, line: line != null ? line : mainLine(p), odds: '' });
+    SB.date = D.date; sbSave(); document.querySelectorAll('[data-sb]').forEach(b => b.dispatchEvent(new Event('sbpaint')));
+  }
+  function sbBtn(id, small) {
+    const b = $('button', 'tick sbt' + (small ? ' small' : '')); b.type = 'button'; b.dataset.sb = id;
+    const paint = () => { const on = inSlip(id); b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '✓ In slip' : '+ Slip'; b.title = on ? 'Remove from the slip builder' : 'Add to the slip builder'; };
+    paint(); b.addEventListener('sbpaint', paint); b.addEventListener('click', e => { e.stopPropagation(); sbAdd(id); }); return b;
+  }
+  function acts(id, tick, small) { const d = $('div', 'acts'); d.append(sbBtn(id, small), tick); return d; }
+  function sbTotals() {
+    const I = SB.legs.map(legInfo).filter(Boolean);
+    const P = I.reduce((a, x) => a * x.e.P, 1);
+    return { I, P, fair: I.length ? 1 / P : null, fails: I.filter(x => !x.e.pass).length };
+  }
+  function sbBar() {
+    const b = document.getElementById('sbbar'); if (!b) return;
+    if (!SB.legs.length || !D) { b.hidden = true; document.body.classList.remove('has-sb'); return; }
+    const T = sbTotals(); b.hidden = false; document.body.classList.add('has-sb'); b.replaceChildren();
+    b.append($('b', null, 'Slip builder'), $('span', null, `${T.I.length} leg${T.I.length > 1 ? 's' : ''}`), $('span', 'pct', pct(T.P)), $('span', null, 'fair '), $('span', 'open', 'Open'));
+    b.children[3].append($('span', 'fair', fx(T.fair)));
+    if (T.fails) b.insertBefore($('span', 'warnc', `${T.fails} not a system pick`), b.lastChild);
+  }
+  const verdictTag = e => e.main ? $('span', 'tag fits', "system's line") : e.pass ? $('span', 'tag fits', 'system would pick') : $('span', 'tag against', 'system would not pick');
+  function ladderTable(p, g) {
+    const box = $('div', 'ladder');
+    box.append($('div', 'subh', 'Other lines: each one judged like a pick'));
+    const w = $('div', 'tbl-wrap'), t = $('table', 'lad'), h = $('tr');
+    ['Line', 'P', 'Fair', 'Conf', 'Record · model', 'Verdict', ''].forEach((x, i) => h.append($('th', i >= 1 && i <= 3 ? 'n' : null, x))); t.append(h);
+    p.ladder.forEach(e => {
+      const tr = $('tr', e.main ? 'main' : ''); const v = $('td', 'wrap');
+      v.append($('span', 'tag ' + (e.pass ? 'fits' : 'against'), e.main ? "system's line" : e.pass ? 'would pick' : 'would not pick'));
+      if (!e.pass && e.fails.length) v.append($('small', null, e.fails.join('; ')));
+      const rec = `${e.k}/${e.n}` + (e.k2 != null ? ` & ${e.k2}/${e.n2}` : '') + (e.model != null ? ` · ${Math.round(e.model * 100)}%` : '');
+      const add = $('td'); const b = $('button', 'chip', inSlip(p.id) && (SB.legs.find(l => l.id === p.id) || {}).line === e.line ? '✓ in slip' : '+ slip'); b.type = 'button';
+      b.addEventListener('click', ev => { ev.stopPropagation(); sbAdd(p.id, e.line); box.replaceWith(ladderTable(p, g)); }); add.append(b);
+      const cf = $('td', 'n'); cf.append(pips(e.conf));
+      tr.append($('td', null, e.label), $('td', 'n', pct(e.P)), $('td', 'n', fx(e.fair)), cf, $('td', 'num', rec), v, add); t.append(tr);
+    });
+    w.append(t); box.append(w, $('div', 'tnote', 'Same checks as every pick: P = the lower of the record and the model, both sides 80%+ (players: his record 83%+, opponent side, like tonight). For players, the opponent side is measured at the system\'s line and scaled to the others.'));
+    return box;
+  }
+  const num_ = v => { const x = parseFloat(String(v).replace(',', '.')); return isFinite(x) && x > 1 ? x : null; };
+  function openSlip() {
+    const sh = document.getElementById('sheet'); sh.replaceChildren();
+    const hd = $('div', 'sheet-h'); const t = $('div', 't'); t.append($('div', 'lg', 'Slip builder · ' + (D ? D.date : '')));
+    const h3 = $('h3', null, 'My slip'); h3.id = 'sheet-title'; t.append(h3);
+    const cl = $('button', 'close', 'Close'); cl.type = 'button'; cl.addEventListener('click', closeSheet); hd.append(t, cl); sh.append(hd);
+    const b = $('div', 'sheet-b'); sh.append(b);
+    const redraw = () => { const y = sh.scrollTop; openSlip(); sh.scrollTop = y; };
+    const T = sbTotals();
+    const s1 = sec('Legs', 'Safer / Riskier moves a line. Each line is judged like a system pick.');
+    if (!T.I.length) s1.append($('p', 'note', 'No legs yet. Tap "+ Slip" on any pick (Football, Slips, Singles, Situational), or "+ slip" on a line in a pick\'s "Other lines" table.'));
+    const games = {};
+    T.I.forEach(x => { (games[x.g.eventId] = games[x.g.eventId] || []).push(x); });
+    T.I.forEach((x, idx) => {
+      const leg = SB.legs.find(l => l.id === x.p.id); const c = $('div', 'bleg' + (x.e.pass ? '' : ' fail'));
+      const top = $('div', 'row'); top.append($('span', 'fxl', `${x.g.kickoff} · ${x.g.home} v ${x.g.away}`));
+      const rm = $('button', 'linkbtn', 'Remove'); rm.type = 'button'; rm.style.marginLeft = 'auto'; rm.addEventListener('click', () => { SB.legs = SB.legs.filter(l => l !== leg); sbSave(); redraw(); }); top.append(rm);
+      const st = $('div', 'stepper');
+      const mk = (txt, di) => { const bb = $('button', 'chip', txt); bb.type = 'button'; const j = x.i + di;
+        bb.disabled = !x.L || x.i < 0 || j < 0 || j >= x.L.length; bb.addEventListener('click', () => { leg.line = x.L[j].line; sbSave(); redraw(); }); return bb; };
+      // ladder is ordered by line; for an "under" leg a higher line is safer
+      const under = x.p.dir === 'under';
+      st.append(mk('− Safer', under ? 1 : -1), $('b', 'lbl', x.e.label), mk('Riskier +', under ? -1 : 1));
+      const meta = $('div', 'row'); meta.style.flexWrap = 'wrap'; meta.style.gap = '4px 12px';
+      meta.append(pips(x.e.conf), $('span', 'pct', pct(x.e.P)), $('span', null, 'fair '), verdictTag(x.e));
+      meta.children[2].append($('span', 'fair', fx(x.e.fair)));
+      if (x.e.k != null) meta.append($('span', 'tnote', `record ${x.e.k}/${x.e.n}` + (x.e.k2 != null ? ` & ${x.e.k2}/${x.e.n2}` : '')));
+      c.append(top, st, meta);
+      if (!x.e.pass && x.e.fails.length) c.append($('div', 'tnote failtxt', 'Fails: ' + x.e.fails.join('; ')));
+      const od = $('label', 'oddsin'); od.append($('span', null, 'Bet365 odds (optional)'));
+      const inp = $('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.placeholder = 'e.g. 1.25'; inp.value = leg.odds || ''; od.append(inp);
+      const cmp = $('span', 'tnote'); const paintC = () => { const o = num_(inp.value); cmp.textContent = o ? `Bet365 implies ${Math.round(100 / o)}% · system ${Math.round(x.e.P * 100)}% (fair ${fx(x.e.fair)})` : ''; };
+      inp.addEventListener('input', () => { leg.odds = inp.value.trim(); sbSave(); paintC(); paintTot(); }); paintC(); od.append(cmp); c.append(od);
+      s1.append(c);
+    });
+    const linked = Object.values(games).filter(a => a.length > 1);
+    if (linked.length) s1.append($('p', 'note warnnote', 'Linked legs: ' + linked.map(a => `${a[0].g.home} v ${a[0].g.away} (${a.length} legs)`).join(', ') + '. Legs in the same match move together, so the combined % below (which treats legs as independent) can be off either way. Bet365 prices linked legs inside its Bet Builder price.'));
+    b.append(s1);
+    // controls
+    const ctl = $('div', 'row'); ctl.style.flexWrap = 'wrap'; ctl.style.gap = '6px';
+    const all = (di) => { SB.legs.forEach(l => { const x = legInfo(l); if (!x || !x.L || x.i < 0) return; const under = x.p.dir === 'under'; const j = x.i + (under ? -di : di); if (j >= 0 && j < x.L.length) l.line = x.L[j].line; }); sbSave(); redraw(); };
+    [['All safer', () => all(-1)], ['All riskier', () => all(1)], ['System lines', () => { SB.legs.forEach(l => { const x = legInfo(l); if (x) l.line = mainLine(x.p); }); sbSave(); redraw(); }],
+     ['Clear', () => { SB.legs = []; SB.odds = ''; SB.stake = ''; sbSave(); redraw(); }]].forEach(([txt, f]) => { const bb = $('button', 'chip', txt); bb.type = 'button'; bb.addEventListener('click', f); ctl.append(bb); });
+    if (T.I.length) b.append(ctl);
+    // totals
+    const s2 = sec('The slip', 'system % = every leg\'s P multiplied');
+    const kv = $('div', 'kv'); s2.append(kv);
+    const oin = $('label', 'oddsin'); oin.append($('span', null, 'Bet365 Bet Builder price'));
+    const oi = $('input'); oi.type = 'text'; oi.inputMode = 'decimal'; oi.placeholder = 'e.g. 2.40'; oi.value = SB.odds || ''; oin.append(oi);
+    const sin = $('label', 'oddsin'); sin.append($('span', null, 'Stake (optional)'));
+    const si = $('input'); si.type = 'text'; si.inputMode = 'decimal'; si.placeholder = 'e.g. 10'; si.value = SB.stake || ''; sin.append(si);
+    const inrow = $('div', 'inrow'); inrow.append(oin, sin); s2.append(inrow);
+    const cmpT = $('div', 'cmpbox'); s2.append(cmpT);
+    function paintTot() {
+      const T2 = sbTotals(); kv.replaceChildren();
+      const legOdds = SB.legs.map(l => num_(l.odds)); const allOdds = legOdds.length && legOdds.every(Boolean) ? legOdds.reduce((a, x) => a * x, 1) : null;
+      kv.append(kvp('Legs', String(T2.I.length)), kvp('System chance', pct(T2.P)), kvp('Fair price', fx(T2.fair)),
+        kvp('Lowest confidence', T2.I.length ? Math.min(...T2.I.map(x => x.e.conf)) + ' of 5' : '—'), kvp('Not system picks', String(T2.fails)));
+      if (allOdds) kv.append(kvp('Leg prices multiplied', allOdds.toFixed(2)));
+      cmpT.replaceChildren(); const o = num_(SB.odds);
+      if (o && T2.I.length) {
+        const ev = T2.P * o;
+        cmpT.append($('p', null, `Bet365 ${o.toFixed(2)} implies ${Math.round(100 / o)}%. The system gives this slip ${Math.round(T2.P * 100)}% (fair ${fx(T2.fair)}).`),
+          $('p', ev >= 1 ? 'good' : 'bad', ev >= 1 ? `Bet365 pays more than the system's fair price: at the system's %, every €1 returns about €${ev.toFixed(2)}.` : `Bet365 pays less than the system's fair price: at the system's %, every €1 returns about €${ev.toFixed(2)}.`));
+        const stv = num_(SB.stake) || parseFloat(SB.stake);
+        if (stv) cmpT.append($('p', 'tnote', `Stake ${stv} → returns ${(stv * o).toFixed(2)} if it lands (profit ${(stv * (o - 1)).toFixed(2)}).`));
+      } else cmpT.append($('p', 'tnote', 'Type Bet365\'s Bet Builder price to compare it with the system\'s fair price.'));
+    }
+    oi.addEventListener('input', () => { SB.odds = oi.value.trim(); sbSave(); paintTot(); });
+    si.addEventListener('input', () => { SB.stake = si.value.trim(); sbSave(); paintTot(); });
+    paintTot();
+    const sv = $('button', 'chip primary', 'Save to my bets'); sv.type = 'button'; sv.disabled = !T.I.length;
+    sv.addEventListener('click', () => {
+      const T3 = sbTotals(); if (!T3.I.length) return;
+      const id = 'CS-' + D.date + '-' + Date.now().toString(36), at = new Date().toISOString();
+      const data = { date: D.date, created: at, P: +T3.P.toFixed(4), odds: num_(SB.odds), stake: parseFloat(SB.stake) || null,
+        legs: T3.I.map(x => { const l = SB.legs.find(q => q.id === x.p.id); return { id: x.p.id, line: l.line, label: x.e.label, P: x.e.P, conf: x.e.conf, pass: x.e.pass, main: !!x.e.main, odds: num_(l.odds), fx: `${x.g.home} v ${x.g.away}`, ko: x.g.kickoff, lg: x.g.league }; }) };
+      MY.custom = MY.custom || {}; MY.custom[id] = data; MYOPS.push({ kind: 'custom', id, on: true, at, data }); MY.updated = at; myLocal();
+      clearTimeout(myTimer); if (tok()) myTimer = setTimeout(mySync, 300);
+      SB.legs = []; SB.odds = ''; SB.stake = ''; sbSave(); redraw();
+    });
+    s2.append(sv, $('p', 'tnote', tok() ? 'Saved slips sync to your private repository and are scored after the matches (Performance → My own slips).' : 'Saved on this device only until a GitHub key is saved (My bets button). Synced slips are scored after the matches.'));
+    b.append(s2);
+    // saved today
+    const saved = Object.entries(MY.custom || {}).filter(([, v]) => v.date === (D && D.date));
+    if (saved.length) {
+      const s3 = sec('Saved today', `${saved.length}`);
+      saved.forEach(([id, v]) => { const c = $('div', 'bleg'); const r = $('div', 'row');
+        r.append($('b', null, `${v.legs.length} legs · ${pct(v.P)} · fair ${fx(1 / v.P)}${v.odds ? ' · Bet365 ' + v.odds.toFixed(2) : ''}`));
+        const del = $('button', 'linkbtn', 'Delete'); del.type = 'button'; del.style.marginLeft = 'auto';
+        del.addEventListener('click', () => { delete MY.custom[id]; MYOPS.push({ kind: 'custom', id, on: false, at: new Date().toISOString() }); myLocal(); if (tok()) mySync(); redraw(); });
+        r.append(del); c.append(r); const u = $('ul'); v.legs.forEach(l => u.append($('li', null, `${l.label} — ${pct(l.P)}${l.pass ? '' : ' (not a system pick)'}${l.odds ? ' · Bet365 ' + l.odds : ''}`))); c.append(u); s3.append(c); });
+      b.append(s3);
+    }
+    document.getElementById('scrim').hidden = false; sh.hidden = false; cl.focus();
+  }
+  document.getElementById('sbbar').addEventListener('click', openSlip);
 
   /* ---------- other views ---------- */
   function findPick(id) { for (const l of D.leagues) for (const g of l.games) { const p = g.picks.find(x => x.id === id); if (p) return [g, p]; } return [null, null]; }
@@ -670,7 +863,7 @@ table.avgs td:first-child { color: var(--muted); }
     const mm = $('span', 'mm'); if (x.conf) mm.append(pips(x.conf)); mm.append($('span', 'pct', pct(x.P)));
     const fr = $('span', null, 'fair '); fr.append($('span', 'fair', fx(x.fair))); mm.append(fr); b.append(mm);
     b.addEventListener('click', () => { const [g] = findPick(x.id); if (g) openGame(g.eventId, x.id); });
-    const w = $('div', 'legrow'); w.append(b, tickBtn('bet', x.id, true)); return w;
+    const w = $('div', 'legrow'); w.append(b, acts(x.id, tickBtn('bet', x.id, true), true)); return w;
   }
   function renderSlips(main) {
     main.append($('p', 'note', 'One slip per league: team and player legs ranked on likelihood, at least one of each, combined 60%+. If Bet365 does not offer a leg in that game, leave it out. Click a leg for its reasoning.'));
@@ -817,6 +1010,27 @@ table.avgs td:first-child { color: var(--muted); }
     const mySl = BJ.slips.filter(x => slipMine(x.id) || x.mine);
     if (mySl.length) secM.append($('p', null, `My slips: ${mySl.filter(x => x.status === 'WON').length} won, ${mySl.filter(x => x.status === 'LOST').length} lost, ${mySl.filter(x => x.status === 'PENDING').length} pending (all slips: ${BJ.slips.filter(x => x.status === 'WON').length} won, ${BJ.slips.filter(x => x.status === 'LOST').length} lost).`));
     main.append(secM);
+    // my own slips (slip builder): scored by the morning run; saved-but-not-yet-synced ones show as pending
+    const CS = (BJ.custom || []).slice(); const have = new Set(CS.map(c => c.id));
+    Object.entries(MY.custom || {}).forEach(([id, v]) => { if (!have.has(id)) CS.push(Object.assign({ id, status: 'PENDING', profit: null }, v, { legs: v.legs.map(l => Object.assign({ res: 'PENDING' }, l)) })); });
+    const secC = $('section', 'lsec'); secC.append($('h3', null, `My own slips (${CS.length})`));
+    if (!CS.length) secC.append($('p', 'note', 'Slips you build yourself (the slip builder: "+ Slip" on any pick, then move lines safer or riskier) are saved here and scored after the matches.'));
+    else {
+      const won = CS.filter(c => c.status === 'WON').length, lost = CS.filter(c => c.status === 'LOST').length, setl = won + lost;
+      const prom = CS.filter(c => c.status !== 'PENDING' && c.P); const avgP = prom.length ? prom.reduce((a, c) => a + c.P, 0) / prom.length : null;
+      const staked = CS.filter(c => c.profit != null).reduce((a, c) => a + c.stake, 0), profit = CS.filter(c => c.profit != null).reduce((a, c) => a + c.profit, 0);
+      const kk = $('div', 'kpis kpis2');
+      [[`${won}/${setl}`, 'won / settled'], [setl ? Math.round(100 * won / setl) + '%' : '—', 'won'], [avgP == null ? '—' : Math.round(avgP * 100) + '%', 'system promised (avg)'],
+       [staked ? staked.toFixed(2) : '—', 'staked (settled)'], [staked ? (profit >= 0 ? '+' : '') + profit.toFixed(2) : '—', 'profit at your Bet365 prices', staked ? (profit >= 0 ? 'good' : 'bad') : '']]
+        .forEach(([v, l, c]) => { const d = $('div'); d.append($('span', null, l), $('div', 'big ' + (c || ''), String(v))); kk.append(d); });
+      secC.append(kk);
+      const mark = r => r === 'HIT' ? '✓' : r === 'MISS' ? '✗' : r === 'VOID' ? 'void' : '…';
+      secC.append(lt(CS.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')), [{ h: 'Date', f: r => r.date }, { h: 'Legs', f: r => r.legs.map(l => `${mark(l.res)} ${l.label}${l.main ? '' : ' (own line)'}`).join(' · '), cls: () => 'wrap' },
+        { h: 'System %', n: 1, f: r => r.P == null ? '—' : Math.round(r.P * 100) + '%' }, { h: 'Fair', n: 1, f: r => r.P ? (1 / r.P).toFixed(2) : '—' }, { h: 'Bet365', n: 1, f: r => r.odds ? r.odds.toFixed(2) : '—' },
+        { h: 'Stake', n: 1, f: r => r.stake ?? '—' }, { h: 'Result', f: r => r.status, cls: r => r.status === 'WON' ? 'good' : r.status === 'LOST' ? 'bad' : '' }, { h: 'Profit', n: 1, f: r => r.profit == null ? '—' : (r.profit >= 0 ? '+' : '') + r.profit.toFixed(2) }]));
+      secC.querySelectorAll('td.wrap').forEach(td => { td.style.whiteSpace = 'normal'; td.style.minWidth = '260px'; });
+    }
+    main.append(secC);
 
     // chart: hit rate v promised by day
     const days = [...new Set(rows.filter(settled).map(b => b.d))].sort();
@@ -943,6 +1157,8 @@ table.avgs td:first-child { color: var(--muted); }
     document.getElementById('ct-slips').textContent = d.slips.length;
     document.getElementById('ct-singles').textContent = d.singles.length;
     document.getElementById('ct-edges').textContent = all.reduce((s, g) => s + g.edges.length, 0);
+    if (SB.date && SB.date !== d.date) { SB = { date: d.date, legs: [], odds: '', stake: '' }; }
+    SB.legs = SB.legs.filter(l => findAny(l.id).p); sbBar();
     render();
     const m = /^#g(\d+)$/.exec(location.hash); if (m) openGame(m[1]);
     fetch('learning.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j) LJ = j; }).catch(() => {});
